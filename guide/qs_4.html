@@ -1,0 +1,478 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Handler - Actix web</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="Actix web framework guide">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme -->
+        
+
+        
+
+        <!-- Fetch Clipboard.js from CDN but have a local fallback -->
+        <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
+        <script>
+            if (typeof Clipboard == 'undefined') {
+                document.write(unescape("%3Cscript src='clipboard.min.js'%3E%3C/script%3E"));
+            }
+        </script>
+
+    </head>
+    <body class="light">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = 'light'; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme;
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            document.querySelector('html').classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li class="affix"><a href="qs_1.html">Quickstart</a></li><li><a href="qs_2.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><a href="qs_3.html"><strong aria-hidden="true">2.</strong> Application</a></li><li><a href="qs_3_5.html"><strong aria-hidden="true">3.</strong> Server</a></li><li><a href="qs_4.html" class="active"><strong aria-hidden="true">4.</strong> Handler</a></li><li><a href="qs_4_5.html"><strong aria-hidden="true">5.</strong> Errors</a></li><li><a href="qs_5.html"><strong aria-hidden="true">6.</strong> URL Dispatch</a></li><li><a href="qs_7.html"><strong aria-hidden="true">7.</strong> Request &amp; Response</a></li><li><a href="qs_8.html"><strong aria-hidden="true">8.</strong> Testing</a></li><li><a href="qs_10.html"><strong aria-hidden="true">9.</strong> Middlewares</a></li><li><a href="qs_12.html"><strong aria-hidden="true">10.</strong> Static file handling</a></li><li><a href="qs_9.html"><strong aria-hidden="true">11.</strong> WebSockets</a></li><li><a href="qs_13.html"><strong aria-hidden="true">12.</strong> HTTP/2</a></li><li><a href="qs_14.html"><strong aria-hidden="true">13.</strong> Database integration</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="submenu">
+                                <li><button class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li><button class="theme" id="rust">Rust</button></li>
+                                <li><button class="theme" id="coal">Coal</button></li>
+                                <li><button class="theme" id="navy">Navy</button></li>
+                                <li><button class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                        </div>
+
+                        <h1 class="menu-title">Actix web</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="qs_4.html#handler" id="handler"><h1>Handler</h1></a>
+<p>A request handler can be any object that implements
+<a href="../actix_web/dev/trait.Handler.html"><code>Handler</code> trait</a>.</p>
+<p>Request handling happens in two stages. First the handler object is called,
+returning any object that implements the
+<a href="../actix_web/trait.Responder.html#foreign-impls"><code>Responder</code> trait</a>.
+Then, <code>respond_to()</code> is called on the returned object, converting itself to a <code>Reply</code> or <code>Error</code>.</p>
+<p>By default actix provides <code>Responder</code> implementations for some standard types,
+such as <code>&amp;'static str</code>, <code>String</code>, etc.</p>
+<blockquote>
+<p>For a complete list of implementations, check
+<a href="../actix_web/trait.Responder.html#foreign-impls"><em>Responder documentation</em></a>.</p>
+</blockquote>
+<p>Examples of valid handlers:</p>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; &amp;'static str {
+    &quot;Hello world!&quot;
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; String {
+    &quot;Hello world!&quot;.to_owned()
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; Bytes {
+    Bytes::from_static(&quot;Hello world!&quot;)
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    ...
+}
+</code></pre>
+<p><em>Handler</em> trait is generic over <em>S</em>, which defines the application state's type.
+Application state is accessible from the handler with the <code>HttpRequest::state()</code> method;
+however, state is accessible as a read-only reference. If you need mutable access to state,
+it must be implemented.</p>
+<blockquote>
+<p><strong>Note</strong>: Alternatively, the handler can mutably access its own state because the <code>handle</code> method takes
+mutable reference to <em>self</em>. <strong>Beware</strong>, actix creates multiple copies
+of the application state and the handlers, unique for each thread. If you run your
+application in several threads, actix will create the same amount as number of threads
+of application state objects and handler objects.</p>
+</blockquote>
+<p>Here is an example of a handler that stores the number of processed requests:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, dev::Handler};
+
+struct MyHandler(usize);
+
+impl&lt;S&gt; Handler&lt;S&gt; for MyHandler {
+    type Result = HttpResponse;
+
+    /// Handle request
+    fn handle(&amp;mut self, req: HttpRequest&lt;S&gt;) -&gt; Self::Result {
+        self.0 += 1;
+        HttpResponse::Ok().into()
+    }
+}
+# fn main() {}
+</code></pre></pre>
+<p>Although this handler will work, <code>self.0</code> will be different depending on the number of threads and
+number of requests processed per thread. A proper implementation would use <code>Arc</code> and <code>AtomicUsize</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+use actix_web::{server, App, HttpRequest, HttpResponse, dev::Handler};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+struct MyHandler(Arc&lt;AtomicUsize&gt;);
+
+impl&lt;S&gt; Handler&lt;S&gt; for MyHandler {
+    type Result = HttpResponse;
+
+    /// Handle request
+    fn handle(&amp;mut self, req: HttpRequest&lt;S&gt;) -&gt; Self::Result {
+        self.0.fetch_add(1, Ordering::Relaxed);
+        HttpResponse::Ok().into()
+    }
+}
+
+fn main() {
+    let sys = actix::System::new(&quot;example&quot;);
+
+    let inc = Arc::new(AtomicUsize::new(0));
+
+    server::new(
+        move || {
+            let cloned = inc.clone();
+            App::new()
+                .resource(&quot;/&quot;, move |r| r.h(MyHandler(cloned)))
+        })
+        .bind(&quot;127.0.0.1:8088&quot;).unwrap()
+        .start();
+
+    println!(&quot;Started http server: 127.0.0.1:8088&quot;);
+#    actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+    let _ = sys.run();
+}
+</code></pre></pre>
+<blockquote>
+<p>Be careful with synchronization primitives like <code>Mutex</code> or <code>RwLock</code>. Actix web framework
+handles requests asynchronously. By blocking thread execution, all concurrent
+request handling processes would block. If you need to share or update some state
+from multiple threads, consider using the <a href="https://actix.github.io/actix/actix/">actix</a> actor system.</p>
+</blockquote>
+<a class="header" href="qs_4.html#response-with-custom-type" id="response-with-custom-type"><h2>Response with custom type</h2></a>
+<p>To return a custom type directly from a handler function, the type needs to implement the <code>Responder</code> trait.</p>
+<p>Let's create a response for a custom type that serializes to an <code>application/json</code> response:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+extern crate serde;
+extern crate serde_json;
+#[macro_use] extern crate serde_derive;
+use actix_web::{server, App, HttpRequest, HttpResponse, Error, Responder, http};
+
+#[derive(Serialize)]
+struct MyObj {
+    name: &amp;'static str,
+}
+
+/// Responder
+impl Responder for MyObj {
+    type Item = HttpResponse;
+    type Error = Error;
+
+    fn respond_to(self, req: HttpRequest) -&gt; Result&lt;HttpResponse, Error&gt; {
+        let body = serde_json::to_string(&amp;self)?;
+
+        // Create response and set content type
+        Ok(HttpResponse::Ok()
+            .content_type(&quot;application/json&quot;)
+            .body(body))
+    }
+}
+
+/// Because `MyObj` implements `Responder`, it is possible to return it directly
+fn index(req: HttpRequest) -&gt; MyObj {
+    MyObj{name: &quot;user&quot;}
+}
+
+fn main() {
+    let sys = actix::System::new(&quot;example&quot;);
+
+    server::new(
+        || App::new()
+            .resource(&quot;/&quot;, |r| r.method(http::Method::GET).f(index)))
+        .bind(&quot;127.0.0.1:8088&quot;).unwrap()
+        .start();
+
+    println!(&quot;Started http server: 127.0.0.1:8088&quot;);
+#    actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+    let _ = sys.run();
+}
+</code></pre></pre>
+<a class="header" href="qs_4.html#async-handlers" id="async-handlers"><h2>Async handlers</h2></a>
+<p>There are two different types of async handlers. Response objects can be generated asynchronously
+or more precisely, any type that implements the <a href="../actix_web/trait.Responder.html"><em>Responder</em></a> trait.</p>
+<p>In this case, the handler must return a <code>Future</code> object that resolves to the <em>Responder</em> type, i.e:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+# use futures::future::{Future, result};
+fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+
+    result(Ok(HttpResponse::Ok()
+              .content_type(&quot;text/html&quot;)
+              .body(format!(&quot;Hello!&quot;))))
+           .responder()
+}
+
+fn index2(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=&amp;'static str, Error=Error&gt;&gt; {
+    result(Ok(&quot;Welcome!&quot;))
+        .responder()
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/async&quot;, |r| r.route().a(index))
+        .resource(&quot;/&quot;, |r| r.route().a(index2))
+        .finish();
+}
+</code></pre></pre>
+<p>Or the response body can be generated asynchronously. In this case, body
+must implement the stream trait <code>Stream&lt;Item=Bytes, Error=Error&gt;</code>, i.e:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    let body = once(Ok(Bytes::from_static(b&quot;test&quot;)));
+
+    HttpResponse::Ok()
+       .content_type(&quot;application/json&quot;)
+       .body(Body::Streaming(Box::new(body)))
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/async&quot;, |r| r.f(index))
+        .finish();
+}
+</code></pre></pre>
+<p>Both methods can be combined. (i.e Async response with streaming body)</p>
+<p>It is possible to return a <code>Result</code> where the <code>Result::Item</code> type can be <code>Future</code>.
+In this example, the <code>index</code> handler can return an error immediately or return a
+future that resolves to a <code>HttpResponse</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+# use futures::future::{Future, result};
+fn index(req: HttpRequest) -&gt; Result&lt;Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt;, Error&gt; {
+    if is_error() {
+       Err(error::ErrorBadRequest(&quot;bad request&quot;))
+    } else {
+       Ok(Box::new(
+           result(Ok(HttpResponse::Ok()
+                  .content_type(&quot;text/html&quot;)
+                  .body(format!(&quot;Hello!&quot;))))))
+    }
+}
+#
+# fn is_error() -&gt; bool { true }
+# fn main() {
+#     App::new()
+#        .resource(&quot;/async&quot;, |r| r.route().f(index))
+#        .finish();
+# }
+</code></pre></pre>
+<a class="header" href="qs_4.html#different-return-types-either" id="different-return-types-either"><h2>Different return types (Either)</h2></a>
+<p>Sometimes, you need to return different types of responses. For example,
+you can error check and return errors, return async responses, or any result that requires two different types.</p>
+<p>For this case, the <a href="../actix_web/enum.Either.html"><code>Either</code></a> type can be used.
+<code>Either</code> allows combining two different responder types into a single type.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# use actix_web::*;
+# use futures::future::Future;
+use futures::future::result;
+use actix_web::{Either, Error, HttpResponse};
+
+type RegisterResult = Either&lt;HttpResponse, Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt;&gt;;
+
+fn index(req: HttpRequest) -&gt; RegisterResult {
+    if is_a_variant() { // &lt;- choose variant A
+        Either::A(
+            HttpResponse::BadRequest().body(&quot;Bad data&quot;))
+    } else {
+        Either::B(      // &lt;- variant B
+            result(Ok(HttpResponse::Ok()
+                   .content_type(&quot;text/html&quot;)
+                   .body(format!(&quot;Hello!&quot;)))).responder())
+    }
+}
+# fn is_a_variant() -&gt; bool { true }
+# fn main() {
+#    App::new()
+#        .resource(&quot;/register&quot;, |r| r.f(index))
+#        .finish();
+# }
+</code></pre></pre>
+<a class="header" href="qs_4.html#tokio-core-handle" id="tokio-core-handle"><h2>Tokio core handle</h2></a>
+<p>Any actix web handler runs within a properly configured
+<a href="https://actix.github.io/actix/actix/struct.System.html">actix system</a>
+and <a href="https://actix.github.io/actix/actix/struct.Arbiter.html">arbiter</a>.
+You can always get access to the tokio handle via the
+<a href="https://actix.github.io/actix/actix/struct.Arbiter.html#method.handle">Arbiter::handle()</a>
+method.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="qs_3_5.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="qs_4_5.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="qs_3_5.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="qs_4_5.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if (getComputedStyle(document.querySelector(".fa")).fontFamily !== "FontAwesome") {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.type = 'text/css';
+                link.href = '_FontAwesome/css/font-awesome.css';
+                document.head.insertBefore(link, document.head.firstChild)
+            }
+        </script>
+
+        
+
+        
+        <!-- Google Analytics Tag -->
+        <script>
+            var localAddrs = ["localhost", "127.0.0.1", ""];
+
+            // make sure we don't activate google analytics if the developer is
+            // inspecting the book locally...
+            if (localAddrs.indexOf(document.location.hostname) === -1) {
+                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                ga('create', 'UA-110322332-1', 'auto');
+                ga('send', 'pageview');
+            }
+        </script>
+        
+
+        
+
+        
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS script -->
+        
+
+    </body>
+</html>

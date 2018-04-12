@@ -1,0 +1,2405 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Actix web</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="Actix web framework guide">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme -->
+        
+
+        
+
+        <!-- Fetch Clipboard.js from CDN but have a local fallback -->
+        <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.1/clipboard.min.js"></script>
+        <script>
+            if (typeof Clipboard == 'undefined') {
+                document.write(unescape("%3Cscript src='clipboard.min.js'%3E%3C/script%3E"));
+            }
+        </script>
+
+    </head>
+    <body class="light">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = 'light'; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme;
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            document.querySelector('html').classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li class="affix"><a href="qs_1.html">Quickstart</a></li><li><a href="qs_2.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><a href="qs_3.html"><strong aria-hidden="true">2.</strong> Application</a></li><li><a href="qs_3_5.html"><strong aria-hidden="true">3.</strong> Server</a></li><li><a href="qs_4.html"><strong aria-hidden="true">4.</strong> Handler</a></li><li><a href="qs_4_5.html"><strong aria-hidden="true">5.</strong> Errors</a></li><li><a href="qs_5.html"><strong aria-hidden="true">6.</strong> URL Dispatch</a></li><li><a href="qs_7.html"><strong aria-hidden="true">7.</strong> Request &amp; Response</a></li><li><a href="qs_8.html"><strong aria-hidden="true">8.</strong> Testing</a></li><li><a href="qs_10.html"><strong aria-hidden="true">9.</strong> Middlewares</a></li><li><a href="qs_12.html"><strong aria-hidden="true">10.</strong> Static file handling</a></li><li><a href="qs_9.html"><strong aria-hidden="true">11.</strong> WebSockets</a></li><li><a href="qs_13.html"><strong aria-hidden="true">12.</strong> HTTP/2</a></li><li><a href="qs_14.html"><strong aria-hidden="true">13.</strong> Database integration</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="submenu">
+                                <li><button class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li><button class="theme" id="rust">Rust</button></li>
+                                <li><button class="theme" id="coal">Coal</button></li>
+                                <li><button class="theme" id="navy">Navy</button></li>
+                                <li><button class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                        </div>
+
+                        <h1 class="menu-title">Actix web</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="print.html#quick-start" id="quick-start"><h1>Quick start</h1></a>
+<a class="header" href="print.html#install-rust" id="install-rust"><h2>Install Rust</h2></a>
+<p>Before we begin, we need to install Rust using <a href="https://www.rustup.rs/">rustup</a>:</p>
+<pre><code class="language-bash">curl https://sh.rustup.rs -sSf | sh
+</code></pre>
+<p>If you already have rustup installed, run this command to ensure you have the latest version of Rust:</p>
+<pre><code class="language-bash">rustup update
+</code></pre>
+<p>Actix web framework requires rust version 1.21 and up.</p>
+<a class="header" href="print.html#running-examples" id="running-examples"><h2>Running Examples</h2></a>
+<p>The fastest way to start experimenting with actix web is to clone the
+<a href="https://github.com/actix/actix-web">repository</a> and run the included examples.</p>
+<p>The following set of commands runs the <code>basics</code> example:</p>
+<pre><code class="language-bash">git clone https://github.com/actix/actix-web
+cd actix-web/examples/basics
+cargo run
+</code></pre>
+<p>Check <a href="https://github.com/actix/actix-web/tree/master/examples">examples/</a> directory for more examples.</p>
+<a class="header" href="print.html#getting-started" id="getting-started"><h1>Getting Started</h1></a>
+<p>Let’s write our first actix web application!</p>
+<a class="header" href="print.html#hello-world" id="hello-world"><h2>Hello, world!</h2></a>
+<p>Start by creating a new binary-based Cargo project and changing into the new directory:</p>
+<pre><code class="language-bash">cargo new hello-world --bin
+cd hello-world
+</code></pre>
+<p>Now, add actix and actix web as dependencies of your project by ensuring your Cargo.toml
+contains the following:</p>
+<pre><code class="language-toml">[dependencies]
+actix = &quot;0.5&quot;
+actix-web = &quot;0.5&quot;
+</code></pre>
+<p>In order to implement a web server, we first need to create a request handler.</p>
+<p>A request handler is a function that accepts an <code>HttpRequest</code> instance as its only parameter
+and returns a type that can be converted into <code>HttpResponse</code>:</p>
+<p>Filename: src/main.rs</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+  fn index(req: HttpRequest) -&gt; &amp;'static str {
+      &quot;Hello world!&quot;
+  }
+# fn main() {}
+</code></pre></pre>
+<p>Next, create an <code>Application</code> instance and register the
+request handler with the application's <code>resource</code> on a particular <em>HTTP method</em> and <em>path</em>::</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+# fn index(req: HttpRequest) -&gt; &amp;'static str {
+#    &quot;Hello world!&quot;
+# }
+# fn main() {
+   App::new()
+       .resource(&quot;/&quot;, |r| r.f(index));
+# }
+</code></pre></pre>
+<p>After that, the application instance can be used with <code>HttpServer</code> to listen for incoming
+connections. The server accepts a function that should return an <code>HttpHandler</code> instance.
+For simplicity <code>server::new</code> could be used, this function is shortcut for <code>HttpServer::new</code>:</p>
+<pre><code class="language-rust ignore">   server::new(
+       || App::new()
+           .resource(&quot;/&quot;, |r| r.f(index)))
+       .bind(&quot;127.0.0.1:8088&quot;)?
+       .run();
+</code></pre>
+<p>That's it! Now, compile and run the program with <code>cargo run</code>.
+Head over to <code>http://localhost:8088/</code> to see the results.</p>
+<p>The full source of src/main.rs is listed below:</p>
+<pre><pre class="playpen"><code class="language-rust"># use std::thread;
+extern crate actix_web;
+use actix_web::{server, App, HttpRequest, HttpResponse};
+
+fn index(req: HttpRequest) -&gt; &amp;'static str {
+    &quot;Hello world!&quot;
+}
+
+fn main() {
+#  // In the doctest suite we can't run blocking code - deliberately leak a thread
+#  // If copying this example in show-all mode, make sure you skip the thread spawn
+#  // call.
+#  thread::spawn(|| {
+    server::new(
+        || App::new()
+            .resource(&quot;/&quot;, |r| r.f(index)))
+        .bind(&quot;127.0.0.1:8088&quot;).expect(&quot;Can not bind to 127.0.0.1:8088&quot;)
+        .run();
+#  });
+}
+</code></pre></pre>
+<blockquote>
+<p><strong>Note</strong>: actix web is built upon <a href="https://github.com/actix/actix">actix</a>,
+an <a href="https://en.wikipedia.org/wiki/Actor_model">actor model</a> framework in Rust.</p>
+</blockquote>
+<p><code>actix::System</code> initializes actor system, <code>HttpServer</code> is an actor and must run within a
+properly configured actix system.</p>
+<blockquote>
+<p>For more information, check out the <a href="https://actix.github.io/actix/actix/">actix documentation</a>
+and <a href="https://actix.github.io/actix/guide/">actix guide</a>.</p>
+</blockquote>
+<a class="header" href="print.html#application" id="application"><h1>Application</h1></a>
+<p>Actix web provides various primitives to build web servers and applications with Rust.
+It provides routing, middlewares, pre-processing of requests, post-processing of responses,
+websocket protocol handling, multipart streams, etc.</p>
+<p>All actix web servers are built around the <code>App</code> instance.
+It is used for registering routes for resources and middlewares.
+It also stores application state shared across all handlers within same application.</p>
+<p>Applications act as a namespace for all routes, i.e all routes for a specific application
+have the same url path prefix. The application prefix always contains a leading &quot;/&quot; slash.
+If a supplied prefix does not contain leading slash, it is automatically inserted.
+The prefix should consist of value path segments.</p>
+<blockquote>
+<p>For an application with prefix <code>/app</code>,
+any request with the paths <code>/app</code>, <code>/app/</code>, or <code>/app/test</code> would match;
+however, the path <code>/application</code> would not match.</p>
+</blockquote>
+<pre><code class="language-rust ignore"># extern crate actix_web;
+# extern crate tokio_core;
+# use actix_web::{*, http::Method};
+# fn index(req: HttpRequest) -&gt; &amp;'static str {
+#    &quot;Hello world!&quot;
+# }
+# fn main() {
+   let app = App::new()
+       .prefix(&quot;/app&quot;)
+       .resource(&quot;/index.html&quot;, |r| r.method(Method::GET).f(index))
+       .finish()
+# }
+</code></pre>
+<p>In this example, an application with the <code>/app</code> prefix and a <code>index.html</code> resource
+are created. This resource is available through the <code>/app/index.html</code> url.</p>
+<blockquote>
+<p>For more information, check the
+<a href="./qs_5.html#using-a-application-prefix-to-compose-applications">URL Dispatch</a> section.</p>
+</blockquote>
+<p>Multiple applications can be served with one server:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate tokio_core;
+# use tokio_core::net::TcpStream;
+# use std::net::SocketAddr;
+use actix_web::{server, App, HttpResponse};
+
+fn main() {
+    server::new(|| vec![
+        App::new()
+            .prefix(&quot;/app1&quot;)
+            .resource(&quot;/&quot;, |r| r.f(|r| HttpResponse::Ok())),
+        App::new()
+            .prefix(&quot;/app2&quot;)
+            .resource(&quot;/&quot;, |r| r.f(|r| HttpResponse::Ok())),
+        App::new()
+            .resource(&quot;/&quot;, |r| r.f(|r| HttpResponse::Ok())),
+    ]);
+}
+</code></pre></pre>
+<p>All <code>/app1</code> requests route to the first application, <code>/app2</code> to the second, and all other to the third.
+<strong>Applications get matched based on registration order</strong>. If an application with a more generic
+prefix is registered before a less generic one, it would effectively block the less generic
+application matching. For example, if an <code>App</code> with the prefix <code>&quot;/&quot;</code> was registered
+as the first application, it would match all incoming requests.</p>
+<a class="header" href="print.html#state" id="state"><h2>State</h2></a>
+<p>Application state is shared with all routes and resources within the same application.
+When using an http actor,state can be accessed with the <code>HttpRequest::state()</code> as read-only,
+but interior mutability with <code>RefCell</code> can be used to achieve state mutability.
+State is also available for route matching predicates and middlewares.</p>
+<p>Let's write a simple application that uses shared state. We are going to store request count
+in the state:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+#
+use std::cell::Cell;
+use actix_web::{App, HttpRequest, http};
+
+// This struct represents state
+struct AppState {
+    counter: Cell&lt;usize&gt;,
+}
+
+fn index(req: HttpRequest&lt;AppState&gt;) -&gt; String {
+    let count = req.state().counter.get() + 1; // &lt;- get count
+    req.state().counter.set(count);            // &lt;- store new count in state
+
+    format!(&quot;Request number: {}&quot;, count)       // &lt;- response with count
+}
+
+fn main() {
+    App::with_state(AppState{counter: Cell::new(0)})
+        .resource(&quot;/&quot;, |r| r.method(http::Method::GET).f(index))
+        .finish();
+}
+</code></pre></pre>
+<blockquote>
+<p><strong>Note</strong>: http server accepts an application factory rather than an application
+instance. Http server constructs an application instance for each thread, thus application state
+must be constructed multiple times. If you want to share state between different threads, a
+shared object should be used, e.g. <code>Arc</code>. Application state does not need to be <code>Send</code> and <code>Sync</code>,
+but the application factory must be <code>Send</code> + <code>Sync</code>.</p>
+</blockquote>
+<a class="header" href="print.html#server" id="server"><h1>Server</h1></a>
+<p>The <a href="../actix_web/server/struct.HttpServer.html"><strong>HttpServer</strong></a> type is responsible for
+serving http requests.</p>
+<p><code>HttpServer</code> accepts an application factory as a parameter, and the
+application factory must have <code>Send</code> + <code>Sync</code> boundaries. More about that in the
+<em>multi-threading</em> section.</p>
+<p>To bind to a specific socket address, <code>bind()</code> must be used, and it may be called multiple times.
+To start the http server, one of the start methods.</p>
+<ul>
+<li>use <code>start()</code> for a simple server</li>
+<li>use <code>start_tls()</code> or <code>start_ssl()</code> for a ssl server</li>
+</ul>
+<p><code>HttpServer</code> is an actix actor. It must be initialized within a properly configured actix system:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+use actix_web::{server::HttpServer, App, HttpResponse};
+
+fn main() {
+    let sys = actix::System::new(&quot;guide&quot;);
+
+    HttpServer::new(
+        || App::new()
+            .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+        .bind(&quot;127.0.0.1:59080&quot;).unwrap()
+        .start();
+
+#     actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+    let _ = sys.run();
+}
+</code></pre></pre>
+<blockquote>
+<p>It is possible to start a server in a separate thread with the <code>spawn()</code> method. In that
+case the server spawns a new thread and creates a new actix system in it. To stop
+this server, send a <code>StopServer</code> message.</p>
+</blockquote>
+<p><code>HttpServer</code> is implemented as an actix actor. It is possible to communicate with the server
+via a messaging system. All start methods, e.g. <code>start()</code> and <code>start_ssl()</code>, return the
+address of the started http server. It accepts several messages:</p>
+<ul>
+<li><code>PauseServer</code> - Pause accepting incoming connections</li>
+<li><code>ResumeServer</code> - Resume accepting incoming connections</li>
+<li><code>StopServer</code> - Stop incoming connection processing, stop all workers and exit</li>
+</ul>
+<pre><pre class="playpen"><code class="language-rust"># extern crate futures;
+# extern crate actix;
+# extern crate actix_web;
+# use futures::Future;
+use std::thread;
+use std::sync::mpsc;
+use actix_web::{server, App, HttpResponse};
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let sys = actix::System::new(&quot;http-server&quot;);
+        let addr = server::new(
+            || App::new()
+                .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+            .bind(&quot;127.0.0.1:0&quot;).expect(&quot;Can not bind to 127.0.0.1:0&quot;)
+            .shutdown_timeout(60)    // &lt;- Set shutdown timeout to 60 seconds
+            .start();
+        let _ = tx.send(addr);
+        let _ = sys.run();
+    });
+
+    let addr = rx.recv().unwrap();
+    let _ = addr.send(
+         server::StopServer{graceful:true}).wait(); // &lt;- Send `StopServer` message to server.
+}
+</code></pre></pre>
+<a class="header" href="print.html#multi-threading" id="multi-threading"><h2>Multi-threading</h2></a>
+<p><code>HttpServer</code> automatically starts an number of http workers, by default
+this number is equal to number of logical CPUs in the system. This number
+can be overridden with the <code>HttpServer::threads()</code> method.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate tokio_core;
+use actix_web::{App, HttpResponse, server::HttpServer};
+
+fn main() {
+    HttpServer::new(
+        || App::new()
+            .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+        .threads(4); // &lt;- Start 4 workers
+}
+</code></pre></pre>
+<p>The server creates a separate application instance for each created worker. Application state
+is not shared between threads. To share state, <code>Arc</code> could be used.</p>
+<blockquote>
+<p>Application state does not need to be <code>Send</code> and <code>Sync</code>,
+but factories must be <code>Send</code> + <code>Sync</code>.</p>
+</blockquote>
+<a class="header" href="print.html#ssl" id="ssl"><h2>SSL</h2></a>
+<p>There are two features for ssl server: <code>tls</code> and <code>alpn</code>. The <code>tls</code> feature is for <code>native-tls</code>
+integration and <code>alpn</code> is for <code>openssl</code>.</p>
+<pre><code class="language-toml">[dependencies]
+actix-web = { git = &quot;https://github.com/actix/actix-web&quot;, features=[&quot;alpn&quot;] }
+</code></pre>
+<pre><code class="language-rust ignore">use std::fs::File;
+use actix_web::*;
+
+fn main() {
+    // load ssl keys
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder.set_private_key_file(&quot;key.pem&quot;, SslFiletype::PEM).unwrap();
+    builder.set_certificate_chain_file(&quot;cert.pem&quot;).unwrap();
+
+    server::new(
+        || App::new()
+            .resource(&quot;/index.html&quot;, |r| r.f(index)))
+        .bind(&quot;127.0.0.1:8080&quot;).unwrap()
+        .serve_ssl(builder).unwrap();
+}
+</code></pre>
+<blockquote>
+<p><strong>Note</strong>: the <em>HTTP/2.0</em> protocol requires
+<a href="https://tools.ietf.org/html/rfc7301">tls alpn</a>.
+At the moment, only <code>openssl</code> has <code>alpn</code> support.
+For a full example, check out
+<a href="https://github.com/actix/actix-web/tree/master/examples/tls">examples/tls</a>.</p>
+</blockquote>
+<a class="header" href="print.html#keep-alive" id="keep-alive"><h2>Keep-Alive</h2></a>
+<p>Actix can wait for requests on a keep-alive connection.</p>
+<blockquote>
+<p><em>keep alive</em> connection behavior is defined by server settings.</p>
+</blockquote>
+<ul>
+<li><code>75</code>, <code>Some(75)</code>, <code>KeepAlive::Timeout(75)</code> - enable 75 second <em>keep alive</em> timer.</li>
+<li><code>None</code> or <code>KeepAlive::Disabled</code> - disable <em>keep alive</em>.</li>
+<li><code>KeepAlive::Tcp(75)</code> - use <code>SO_KEEPALIVE</code> socket option.</li>
+</ul>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate tokio_core;
+use actix_web::{server, App, HttpResponse};
+
+fn main() {
+    server::new(||
+        App::new()
+            .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+        .keep_alive(75); // &lt;- Set keep-alive to 75 seconds
+
+    server::new(||
+        App::new()
+            .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+        .keep_alive(server::KeepAlive::Tcp(75)); // &lt;- Use `SO_KEEPALIVE` socket option.
+
+    server::new(||
+        App::new()
+            .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok())))
+        .keep_alive(None); // &lt;- Disable keep-alive
+}
+</code></pre></pre>
+<p>If the first option is selected, then <em>keep alive</em> state is
+calculated based on the response's <em>connection-type</em>. By default
+<code>HttpResponse::connection_type</code> is not defined. In that case <em>keep alive</em> is
+defined by the request's http version.</p>
+<blockquote>
+<p><em>keep alive</em> is <strong>off</strong> for <em>HTTP/1.0</em> and is <strong>on</strong> for <em>HTTP/1.1</em> and <em>HTTP/2.0</em>.</p>
+</blockquote>
+<p><em>Connection type</em> can be change with <code>HttpResponseBuilder::connection_type()</code> method.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{HttpRequest, HttpResponse, http};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .connection_type(http::ConnectionType::Close) // &lt;- Close connection
+        .force_close()                                // &lt;- Alternative method
+        .finish()
+}
+# fn main() {}
+</code></pre></pre>
+<a class="header" href="print.html#graceful-shutdown" id="graceful-shutdown"><h2>Graceful shutdown</h2></a>
+<p><code>HttpServer</code> supports graceful shutdown. After receiving a stop signal, workers
+have a specific amount of time to finish serving requests. Any workers still alive after the
+timeout are force-dropped. By default the shutdown timeout is set to 30 seconds.
+You can change this parameter with the <code>HttpServer::shutdown_timeout()</code> method.</p>
+<p>You can send a stop message to the server with the server address and specify if you want
+graceful shutdown or not. The <code>start()</code> methods returns address of the server.</p>
+<p><code>HttpServer</code> handles several OS signals. <em>CTRL-C</em> is available on all OSs,
+other signals are available on unix systems.</p>
+<ul>
+<li><em>SIGINT</em> - Force shutdown workers</li>
+<li><em>SIGTERM</em> - Graceful shutdown workers</li>
+<li><em>SIGQUIT</em> - Force shutdown workers</li>
+</ul>
+<blockquote>
+<p>It is possible to disable signal handling with <code>HttpServer::disable_signals()</code> method.</p>
+</blockquote>
+<a class="header" href="print.html#handler" id="handler"><h1>Handler</h1></a>
+<p>A request handler can be any object that implements
+<a href="../actix_web/dev/trait.Handler.html"><code>Handler</code> trait</a>.</p>
+<p>Request handling happens in two stages. First the handler object is called,
+returning any object that implements the
+<a href="../actix_web/trait.Responder.html#foreign-impls"><code>Responder</code> trait</a>.
+Then, <code>respond_to()</code> is called on the returned object, converting itself to a <code>Reply</code> or <code>Error</code>.</p>
+<p>By default actix provides <code>Responder</code> implementations for some standard types,
+such as <code>&amp;'static str</code>, <code>String</code>, etc.</p>
+<blockquote>
+<p>For a complete list of implementations, check
+<a href="../actix_web/trait.Responder.html#foreign-impls"><em>Responder documentation</em></a>.</p>
+</blockquote>
+<p>Examples of valid handlers:</p>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; &amp;'static str {
+    &quot;Hello world!&quot;
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; String {
+    &quot;Hello world!&quot;.to_owned()
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; Bytes {
+    Bytes::from_static(&quot;Hello world!&quot;)
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    ...
+}
+</code></pre>
+<p><em>Handler</em> trait is generic over <em>S</em>, which defines the application state's type.
+Application state is accessible from the handler with the <code>HttpRequest::state()</code> method;
+however, state is accessible as a read-only reference. If you need mutable access to state,
+it must be implemented.</p>
+<blockquote>
+<p><strong>Note</strong>: Alternatively, the handler can mutably access its own state because the <code>handle</code> method takes
+mutable reference to <em>self</em>. <strong>Beware</strong>, actix creates multiple copies
+of the application state and the handlers, unique for each thread. If you run your
+application in several threads, actix will create the same amount as number of threads
+of application state objects and handler objects.</p>
+</blockquote>
+<p>Here is an example of a handler that stores the number of processed requests:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, dev::Handler};
+
+struct MyHandler(usize);
+
+impl&lt;S&gt; Handler&lt;S&gt; for MyHandler {
+    type Result = HttpResponse;
+
+    /// Handle request
+    fn handle(&amp;mut self, req: HttpRequest&lt;S&gt;) -&gt; Self::Result {
+        self.0 += 1;
+        HttpResponse::Ok().into()
+    }
+}
+# fn main() {}
+</code></pre></pre>
+<p>Although this handler will work, <code>self.0</code> will be different depending on the number of threads and
+number of requests processed per thread. A proper implementation would use <code>Arc</code> and <code>AtomicUsize</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+use actix_web::{server, App, HttpRequest, HttpResponse, dev::Handler};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+struct MyHandler(Arc&lt;AtomicUsize&gt;);
+
+impl&lt;S&gt; Handler&lt;S&gt; for MyHandler {
+    type Result = HttpResponse;
+
+    /// Handle request
+    fn handle(&amp;mut self, req: HttpRequest&lt;S&gt;) -&gt; Self::Result {
+        self.0.fetch_add(1, Ordering::Relaxed);
+        HttpResponse::Ok().into()
+    }
+}
+
+fn main() {
+    let sys = actix::System::new(&quot;example&quot;);
+
+    let inc = Arc::new(AtomicUsize::new(0));
+
+    server::new(
+        move || {
+            let cloned = inc.clone();
+            App::new()
+                .resource(&quot;/&quot;, move |r| r.h(MyHandler(cloned)))
+        })
+        .bind(&quot;127.0.0.1:8088&quot;).unwrap()
+        .start();
+
+    println!(&quot;Started http server: 127.0.0.1:8088&quot;);
+#    actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+    let _ = sys.run();
+}
+</code></pre></pre>
+<blockquote>
+<p>Be careful with synchronization primitives like <code>Mutex</code> or <code>RwLock</code>. Actix web framework
+handles requests asynchronously. By blocking thread execution, all concurrent
+request handling processes would block. If you need to share or update some state
+from multiple threads, consider using the <a href="https://actix.github.io/actix/actix/">actix</a> actor system.</p>
+</blockquote>
+<a class="header" href="print.html#response-with-custom-type" id="response-with-custom-type"><h2>Response with custom type</h2></a>
+<p>To return a custom type directly from a handler function, the type needs to implement the <code>Responder</code> trait.</p>
+<p>Let's create a response for a custom type that serializes to an <code>application/json</code> response:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+extern crate serde;
+extern crate serde_json;
+#[macro_use] extern crate serde_derive;
+use actix_web::{server, App, HttpRequest, HttpResponse, Error, Responder, http};
+
+#[derive(Serialize)]
+struct MyObj {
+    name: &amp;'static str,
+}
+
+/// Responder
+impl Responder for MyObj {
+    type Item = HttpResponse;
+    type Error = Error;
+
+    fn respond_to(self, req: HttpRequest) -&gt; Result&lt;HttpResponse, Error&gt; {
+        let body = serde_json::to_string(&amp;self)?;
+
+        // Create response and set content type
+        Ok(HttpResponse::Ok()
+            .content_type(&quot;application/json&quot;)
+            .body(body))
+    }
+}
+
+/// Because `MyObj` implements `Responder`, it is possible to return it directly
+fn index(req: HttpRequest) -&gt; MyObj {
+    MyObj{name: &quot;user&quot;}
+}
+
+fn main() {
+    let sys = actix::System::new(&quot;example&quot;);
+
+    server::new(
+        || App::new()
+            .resource(&quot;/&quot;, |r| r.method(http::Method::GET).f(index)))
+        .bind(&quot;127.0.0.1:8088&quot;).unwrap()
+        .start();
+
+    println!(&quot;Started http server: 127.0.0.1:8088&quot;);
+#    actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+    let _ = sys.run();
+}
+</code></pre></pre>
+<a class="header" href="print.html#async-handlers" id="async-handlers"><h2>Async handlers</h2></a>
+<p>There are two different types of async handlers. Response objects can be generated asynchronously
+or more precisely, any type that implements the <a href="../actix_web/trait.Responder.html"><em>Responder</em></a> trait.</p>
+<p>In this case, the handler must return a <code>Future</code> object that resolves to the <em>Responder</em> type, i.e:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+# use futures::future::{Future, result};
+fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+
+    result(Ok(HttpResponse::Ok()
+              .content_type(&quot;text/html&quot;)
+              .body(format!(&quot;Hello!&quot;))))
+           .responder()
+}
+
+fn index2(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=&amp;'static str, Error=Error&gt;&gt; {
+    result(Ok(&quot;Welcome!&quot;))
+        .responder()
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/async&quot;, |r| r.route().a(index))
+        .resource(&quot;/&quot;, |r| r.route().a(index2))
+        .finish();
+}
+</code></pre></pre>
+<p>Or the response body can be generated asynchronously. In this case, body
+must implement the stream trait <code>Stream&lt;Item=Bytes, Error=Error&gt;</code>, i.e:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    let body = once(Ok(Bytes::from_static(b&quot;test&quot;)));
+
+    HttpResponse::Ok()
+       .content_type(&quot;application/json&quot;)
+       .body(Body::Streaming(Box::new(body)))
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/async&quot;, |r| r.f(index))
+        .finish();
+}
+</code></pre></pre>
+<p>Both methods can be combined. (i.e Async response with streaming body)</p>
+<p>It is possible to return a <code>Result</code> where the <code>Result::Item</code> type can be <code>Future</code>.
+In this example, the <code>index</code> handler can return an error immediately or return a
+future that resolves to a <code>HttpResponse</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# extern crate bytes;
+# use actix_web::*;
+# use bytes::Bytes;
+# use futures::stream::once;
+# use futures::future::{Future, result};
+fn index(req: HttpRequest) -&gt; Result&lt;Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt;, Error&gt; {
+    if is_error() {
+       Err(error::ErrorBadRequest(&quot;bad request&quot;))
+    } else {
+       Ok(Box::new(
+           result(Ok(HttpResponse::Ok()
+                  .content_type(&quot;text/html&quot;)
+                  .body(format!(&quot;Hello!&quot;))))))
+    }
+}
+#
+# fn is_error() -&gt; bool { true }
+# fn main() {
+#     App::new()
+#        .resource(&quot;/async&quot;, |r| r.route().f(index))
+#        .finish();
+# }
+</code></pre></pre>
+<a class="header" href="print.html#different-return-types-either" id="different-return-types-either"><h2>Different return types (Either)</h2></a>
+<p>Sometimes, you need to return different types of responses. For example,
+you can error check and return errors, return async responses, or any result that requires two different types.</p>
+<p>For this case, the <a href="../actix_web/enum.Either.html"><code>Either</code></a> type can be used.
+<code>Either</code> allows combining two different responder types into a single type.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# use actix_web::*;
+# use futures::future::Future;
+use futures::future::result;
+use actix_web::{Either, Error, HttpResponse};
+
+type RegisterResult = Either&lt;HttpResponse, Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt;&gt;;
+
+fn index(req: HttpRequest) -&gt; RegisterResult {
+    if is_a_variant() { // &lt;- choose variant A
+        Either::A(
+            HttpResponse::BadRequest().body(&quot;Bad data&quot;))
+    } else {
+        Either::B(      // &lt;- variant B
+            result(Ok(HttpResponse::Ok()
+                   .content_type(&quot;text/html&quot;)
+                   .body(format!(&quot;Hello!&quot;)))).responder())
+    }
+}
+# fn is_a_variant() -&gt; bool { true }
+# fn main() {
+#    App::new()
+#        .resource(&quot;/register&quot;, |r| r.f(index))
+#        .finish();
+# }
+</code></pre></pre>
+<a class="header" href="print.html#tokio-core-handle" id="tokio-core-handle"><h2>Tokio core handle</h2></a>
+<p>Any actix web handler runs within a properly configured
+<a href="https://actix.github.io/actix/actix/struct.System.html">actix system</a>
+and <a href="https://actix.github.io/actix/actix/struct.Arbiter.html">arbiter</a>.
+You can always get access to the tokio handle via the
+<a href="https://actix.github.io/actix/actix/struct.Arbiter.html#method.handle">Arbiter::handle()</a>
+method.</p>
+<a class="header" href="print.html#errors" id="errors"><h1>Errors</h1></a>
+<p>Actix uses the <a href="../actix_web/error/struct.Error.html"><code>Error</code> type</a>
+and <a href="../actix_web/error/trait.ResponseError.html"><code>ResponseError</code> trait</a>
+for handling handler's errors.</p>
+<p>Any error that implements the <code>ResponseError</code> trait can be returned as an error value.
+<code>Handler</code> can return an <code>Result</code> object. By default, actix provides a
+<code>Responder</code> implementation for compatible result types. Here is the implementation
+definition:</p>
+<pre><code class="language-rust ignore">impl&lt;T: Responder, E: Into&lt;Error&gt;&gt; Responder for Result&lt;T, E&gt;
+</code></pre>
+<p>Any error that implements <code>ResponseError</code> can be converted into an <code>Error</code> object.</p>
+<p>For example, if the <em>handler</em> function returns <code>io::Error</code>, it would be converted
+into an <code>HttpInternalServerError</code> response. Implementation for <code>io::Error</code> is provided
+by default.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+use std::io;
+
+fn index(req: HttpRequest) -&gt; io::Result&lt;fs::NamedFile&gt; {
+    Ok(fs::NamedFile::open(&quot;static/index.html&quot;)?)
+}
+#
+# fn main() {
+#     App::new()
+#         .resource(r&quot;/a/index.html&quot;, |r| r.f(index))
+#         .finish();
+# }
+</code></pre></pre>
+<a class="header" href="print.html#custom-error-response" id="custom-error-response"><h2>Custom error response</h2></a>
+<p>To add support for custom errors, all we need to do is implement the <code>ResponseError</code> trait
+for the custom error type. The <code>ResponseError</code> trait has a default implementation
+for the <code>error_response()</code> method: it generates a <em>500</em> response.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate failure;
+use actix_web::*;
+
+#[derive(Fail, Debug)]
+#[fail(display=&quot;my error&quot;)]
+struct MyError {
+   name: &amp;'static str
+}
+
+/// Use default implementation for `error_response()` method
+impl error::ResponseError for MyError {}
+
+fn index(req: HttpRequest) -&gt; Result&lt;&amp;'static str, MyError&gt; {
+    Err(MyError{name: &quot;test&quot;})
+}
+#
+# fn main() {
+#     App::new()
+#         .resource(r&quot;/a/index.html&quot;, |r| r.f(index))
+#         .finish();
+# }
+</code></pre></pre>
+<p>In this example the <em>index</em> handler always returns a <em>500</em> response. But it is easy
+to return different responses for different types of errors.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate failure;
+use actix_web::{App, HttpRequest, HttpResponse, http, error};
+
+#[derive(Fail, Debug)]
+enum MyError {
+   #[fail(display=&quot;internal error&quot;)]
+   InternalError,
+   #[fail(display=&quot;bad request&quot;)]
+   BadClientData,
+   #[fail(display=&quot;timeout&quot;)]
+   Timeout,
+}
+
+impl error::ResponseError for MyError {
+    fn error_response(&amp;self) -&gt; HttpResponse {
+       match *self {
+          MyError::InternalError =&gt; HttpResponse::new(
+              http::StatusCode::INTERNAL_SERVER_ERROR),
+          MyError::BadClientData =&gt; HttpResponse::new(
+              http::StatusCode::BAD_REQUEST),
+          MyError::Timeout =&gt; HttpResponse::new(
+              http::StatusCode::GATEWAY_TIMEOUT),
+       }
+    }
+}
+
+fn index(req: HttpRequest) -&gt; Result&lt;&amp;'static str, MyError&gt; {
+    Err(MyError::BadClientData)
+}
+#
+# fn main() {
+#     App::new()
+#         .resource(r&quot;/a/index.html&quot;, |r| r.f(index))
+#         .finish();
+# }
+</code></pre></pre>
+<a class="header" href="print.html#error-helpers" id="error-helpers"><h2>Error helpers</h2></a>
+<p>Actix provides a set of error helper types. It is possible to use them for generating
+specific error responses. We can use the helper types for the first example with a custom error.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate failure;
+use actix_web::*;
+
+#[derive(Debug)]
+struct MyError {
+   name: &amp;'static str
+}
+
+fn index(req: HttpRequest) -&gt; Result&lt;&amp;'static str&gt; {
+    let result: Result&lt;&amp;'static str, MyError&gt; = Err(MyError{name: &quot;test&quot;});
+
+    Ok(result.map_err(|e| error::ErrorBadRequest(e))?)
+}
+# fn main() {
+#     App::new()
+#         .resource(r&quot;/a/index.html&quot;, |r| r.f(index))
+#         .finish();
+# }
+</code></pre></pre>
+<p>In this example, a <em>BAD REQUEST</em> response is generated for the <code>MyError</code> error.</p>
+<a class="header" href="print.html#error-logging" id="error-logging"><h2>Error logging</h2></a>
+<p>Actix logs all errors with the log level <code>WARN</code>. If log level set to <code>DEBUG</code>
+and <code>RUST_BACKTRACE</code> is enabled, the backtrace gets logged. The Error type uses
+the cause's error backtrace if available. If the underlying failure does not provide
+a backtrace, a new backtrace is constructed pointing to that conversion point
+(rather than the origin of the error). This construction only happens if there
+is no underlying backtrace; if it does have a backtrace, no new backtrace is constructed.</p>
+<p>You can enable backtrace and debug logging with following command:</p>
+<pre><code>&gt;&gt; RUST_BACKTRACE=1 RUST_LOG=actix_web=debug cargo run
+</code></pre>
+<a class="header" href="print.html#url-dispatch" id="url-dispatch"><h1>URL Dispatch</h1></a>
+<p>URL dispatch provides a simple way for mapping URLs to <code>Handler</code> code using a simple pattern
+matching language. If one of the patterns matches the path information associated with a request,
+a particular handler object is invoked.</p>
+<blockquote>
+<p>A handler is a specific object that implements the
+<code>Handler</code> trait, defined in your application, that receives the request and returns
+a response object. More information is available in the <a href="../qs_4.html">handler section</a>.</p>
+</blockquote>
+<a class="header" href="print.html#resource-configuration" id="resource-configuration"><h2>Resource configuration</h2></a>
+<p>Resource configuration is the act of adding a new resources to an application.
+A resource has a name, which acts as an identifier to be used for URL generation.
+The name also allows developers to add routes to existing resources.
+A resource also has a pattern, meant to match against the <em>PATH</em> portion of a <em>URL</em>.
+It does not match against the <em>QUERY</em> portion (the portion following the scheme and
+port, e.g., <em>/foo/bar</em> in the <em>URL</em> <em>http://localhost:8080/foo/bar?q=value</em>).</p>
+<p>The <a href="../actix_web/struct.App.html#method.route">App::route</a> method provides
+simple way of registering routes. This method adds a single route to application
+routing table. This method accepts a <em>path pattern</em>,
+<em>http method</em> and a handler function. <code>route()</code> method could be called multiple times
+for the same path, in that case, multiple routes register for the same resource path.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, http::Method};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+   unimplemented!()
+}
+
+fn main() {
+    App::new()
+        .route(&quot;/user/{name}&quot;, Method::GET, index)
+        .route(&quot;/user/{name}&quot;, Method::POST, index)
+        .finish();
+}
+</code></pre></pre>
+<p>While <em>App::route()</em> provides simple way of registering routes, to access
+complete resource configuration, different method has to be used.
+The <a href="../actix_web/struct.App.html#method.resource">App::resource</a> method
+adds a single resource to application routing table. This method accepts a <em>path pattern</em>
+and a resource configuration function.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, http::Method};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+   unimplemented!()
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/prefix&quot;, |r| r.f(index))
+        .resource(&quot;/user/{name}&quot;,
+             |r| r.method(Method::GET).f(|req| HttpResponse::Ok()))
+        .finish();
+}
+</code></pre></pre>
+<p>The <em>Configuration function</em> has the following type:</p>
+<pre><code class="language-rust ignore">   FnOnce(&amp;mut Resource&lt;_&gt;) -&gt; ()
+</code></pre>
+<p>The <em>Configuration function</em> can set a name and register specific routes.
+If a resource does not contain any route or does not have any matching routes, it
+returns <em>NOT FOUND</em> http response.</p>
+<a class="header" href="print.html#configuring-a-route" id="configuring-a-route"><h2>Configuring a Route</h2></a>
+<p>Resource contains a set of routes. Each route in turn has a set of predicates and a handler.
+New routes can be created with <code>Resource::route()</code> method which returns a reference
+to new <em>Route</em> instance. By default the <em>route</em> does not contain any predicates, so matches
+all requests and the default handler is <code>HttpNotFound</code>.</p>
+<p>The application routes incoming requests based on route criteria which are defined during
+resource registration and route registration. Resource matches all routes it contains in
+the order the routes were registered via <code>Resource::route()</code>.</p>
+<blockquote>
+<p>A <em>Route</em> can contain any number of <em>predicates</em> but only one handler.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+
+fn main() {
+    App::new()
+        .resource(&quot;/path&quot;, |resource|
+            resource.route()
+              .filter(pred::Get())
+              .filter(pred::Header(&quot;content-type&quot;, &quot;text/plain&quot;))
+              .f(|req| HttpResponse::Ok())
+        )
+        .finish();
+}
+</code></pre></pre>
+<p>In this example, <code>HttpResponse::Ok()</code> is returned for <em>GET</em> requests.
+If a request contains <code>Content-Type</code> header, the value of this header is <em>text/plain</em>,
+and path equals to <code>/path</code>, Resource calls handle of the first matching route.</p>
+<p>If a resource can not match any route, a &quot;NOT FOUND&quot; response is returned.</p>
+<p><a href="../actix_web/struct.Resource.html#method.route"><em>Resource::route()</em></a> returns a
+<a href="../actix_web/struct.Route.html"><em>Route</em></a> object. Route can be configured with a
+builder-like pattern. Following configuration methods are available:</p>
+<ul>
+<li>
+<p><a href="../actix_web/struct.Route.html#method.filter"><em>Route::filter()</em></a> registers a new predicate.
+Any number of predicates can be registered for each route.</p>
+</li>
+<li>
+<p><a href="../actix_web/struct.Route.html#method.f"><em>Route::f()</em></a> registers handler function
+for this route. Only one handler can be registered. Usually handler registration
+is the last config operation. Handler function can be a function or closure and has the type
+<code>Fn(HttpRequest&lt;S&gt;) -&gt; R + 'static</code></p>
+</li>
+<li>
+<p><a href="../actix_web/struct.Route.html#method.h"><em>Route::h()</em></a> registers a handler object
+that implements the <code>Handler</code> trait. This is similar to <code>f()</code> method - only one handler can
+be registered. Handler registration is the last config operation.</p>
+</li>
+<li>
+<p><a href="../actix_web/struct.Route.html#method.a"><em>Route::a()</em></a> registers an async handler
+function for this route. Only one handler can be registered. Handler registration
+is the last config operation. Handler function can be a function or closure and has the type
+<code>Fn(HttpRequest&lt;S&gt;) -&gt; Future&lt;Item = HttpResponse, Error = Error&gt; + 'static</code></p>
+</li>
+</ul>
+<a class="header" href="print.html#route-matching" id="route-matching"><h2>Route matching</h2></a>
+<p>The main purpose of route configuration is to match (or not match) the request's <code>path</code>
+against a URL path pattern. <code>path</code> represents the path portion of the URL that was requested.</p>
+<p>The way that <em>actix</em> does this is very simple. When a request enters the system,
+for each resource configuration declaration present in the system, actix checks
+the request's path against the pattern declared. This checking happens in the order that
+the routes were declared via <code>App::resource()</code> method. If resource can not be found,
+the <em>default resource</em> is used as the matched resource.</p>
+<p>When a route configuration is declared, it may contain route predicate arguments. All route
+predicates associated with a route declaration must be <code>true</code> for the route configuration to
+be used for a given request during a check. If any predicate in the set of route predicate
+arguments provided to a route configuration returns <code>false</code> during a check, that route is
+skipped and route matching continues through the ordered set of routes.</p>
+<p>If any route matches, the route matching process stops and the handler associated with
+the route is invoked. If no route matches after all route patterns are exhausted, a <em>NOT FOUND</em> response get returned.</p>
+<a class="header" href="print.html#resource-pattern-syntax" id="resource-pattern-syntax"><h2>Resource pattern syntax</h2></a>
+<p>The syntax of the pattern matching language used by actix in the pattern
+argument is straightforward.</p>
+<p>The pattern used in route configuration may start with a slash character. If the pattern
+does not start with a slash character, an implicit slash will be prepended
+to it at matching time. For example, the following patterns are equivalent:</p>
+<pre><code>{foo}/bar/baz
+</code></pre>
+<p>and:</p>
+<pre><code>/{foo}/bar/baz
+</code></pre>
+<p>A <em>variable part</em> (replacement marker) is specified in the form <em>{identifier}</em>,
+where this means &quot;accept any characters up to the next slash character and use this
+as the name in the <code>HttpRequest.match_info()</code> object&quot;.</p>
+<p>A replacement marker in a pattern matches the regular expression <code>[^{}/]+</code>.</p>
+<p>A match_info is the <code>Params</code> object representing the dynamic parts extracted from a
+<em>URL</em> based on the routing pattern. It is available as <em>request.match_info</em>. For example, the
+following pattern defines one literal segment (foo) and two replacement markers (baz, and bar):</p>
+<pre><code>foo/{baz}/{bar}
+</code></pre>
+<p>The above pattern will match these URLs, generating the following match information:</p>
+<pre><code>foo/1/2        -&gt; Params {'baz':'1', 'bar':'2'}
+foo/abc/def    -&gt; Params {'baz':'abc', 'bar':'def'}
+</code></pre>
+<p>It will not match the following patterns however:</p>
+<pre><code>foo/1/2/        -&gt; No match (trailing slash)
+bar/abc/def     -&gt; First segment literal mismatch
+</code></pre>
+<p>The match for a segment replacement marker in a segment will be done only up to
+the first non-alphanumeric character in the segment in the pattern. So, for instance,
+if this route pattern was used:</p>
+<pre><code>foo/{name}.html
+</code></pre>
+<p>The literal path <em>/foo/biz.html</em> will match the above route pattern, and the match result
+will be <code>Params{'name': 'biz'}</code>. However, the literal path <em>/foo/biz</em> will not match,
+because it does not contain a literal <em>.html</em> at the end of the segment represented
+by <em>{name}.html</em> (it only contains biz, not biz.html).</p>
+<p>To capture both segments, two replacement markers can be used:</p>
+<pre><code>foo/{name}.{ext}
+</code></pre>
+<p>The literal path <em>/foo/biz.html</em> will match the above route pattern, and the match
+result will be <em>Params{'name': 'biz', 'ext': 'html'}</em>. This occurs because there is a
+literal part of <em>.</em> (period) between the two replacement markers <em>{name}</em> and <em>{ext}</em>.</p>
+<p>Replacement markers can optionally specify a regular expression which will be used to decide
+whether a path segment should match the marker. To specify that a replacement marker should
+match only a specific set of characters as defined by a regular expression, you must use a
+slightly extended form of replacement marker syntax. Within braces, the replacement marker
+name must be followed by a colon, then directly thereafter, the regular expression. The default
+regular expression associated with a replacement marker <em><sup class="footnote-reference"><a href="print.html#/">1</a></sup>+</em> matches one or more characters
+which are not a slash. For example, under the hood, the replacement marker <em>{foo}</em> can more
+verbosely be spelled as <em>{foo:<sup class="footnote-reference"><a href="print.html#/">1</a></sup>+}</em>. You can change this to be an arbitrary regular expression
+to match an arbitrary sequence of characters, such as <em>{foo:\d+}</em> to match only digits.</p>
+<p>Segments must contain at least one character in order to match a segment replacement marker.
+For example, for the URL <em>/abc/</em>:</p>
+<ul>
+<li><em>/abc/{foo}</em> will not match.</li>
+<li><em>/{foo}/</em> will match.</li>
+</ul>
+<blockquote>
+<p><strong>Note</strong>: path will be URL-unquoted and decoded into valid unicode string before
+matching pattern and values representing matched path segments will be URL-unquoted too.</p>
+</blockquote>
+<p>So for instance, the following pattern:</p>
+<pre><code>foo/{bar}
+</code></pre>
+<p>When matching the following URL:</p>
+<pre><code>http://example.com/foo/La%20Pe%C3%B1a
+</code></pre>
+<p>The matchdict will look like so (the value is URL-decoded):</p>
+<pre><code>Params{'bar': 'La Pe\xf1a'}
+</code></pre>
+<p>Literal strings in the path segment should represent the decoded value of the
+path provided to actix. You don't want to use a URL-encoded value in the pattern.
+For example, rather than this:</p>
+<pre><code>/Foo%20Bar/{baz}
+</code></pre>
+<p>You'll want to use something like this:</p>
+<pre><code>/Foo Bar/{baz}
+</code></pre>
+<p>It is possible to get &quot;tail match&quot;. For this purpose custom regex has to be used.</p>
+<pre><code>foo/{bar}/{tail:.*}
+</code></pre>
+<p>The above pattern will match these URLs, generating the following match information:</p>
+<pre><code>foo/1/2/           -&gt; Params{'bar':'1', 'tail': '2/'}
+foo/abc/def/a/b/c  -&gt; Params{'bar':u'abc', 'tail': 'def/a/b/c'}
+</code></pre>
+<a class="header" href="print.html#match-information" id="match-information"><h2>Match information</h2></a>
+<p>All values representing matched path segments are available in
+<a href="../actix_web/struct.HttpRequest.html#method.match_info"><code>HttpRequest::match_info</code></a>.
+Specific values can be retrieved with
+<a href="../actix_web/dev/struct.Params.html#method.get"><code>Params::get()</code></a>.</p>
+<p>Any matched parameter can be deserialized into a specific type if the type
+implements the <code>FromParam</code> trait. For example most standard integer types
+the trait, i.e.:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::*;
+
+fn index(req: HttpRequest) -&gt; Result&lt;String&gt; {
+    let v1: u8 = req.match_info().query(&quot;v1&quot;)?;
+    let v2: u8 = req.match_info().query(&quot;v2&quot;)?;
+    Ok(format!(&quot;Values {} {}&quot;, v1, v2))
+}
+
+fn main() {
+    App::new()
+        .resource(r&quot;/a/{v1}/{v2}/&quot;, |r| r.f(index))
+        .finish();
+}
+</code></pre></pre>
+<p>For this example for path '/a/1/2/', values v1 and v2 will resolve to &quot;1&quot; and &quot;2&quot;.</p>
+<p>It is possible to create a <code>PathBuf</code> from a tail path parameter. The returned <code>PathBuf</code> is
+percent-decoded. If a segment is equal to &quot;..&quot;, the previous segment (if
+any) is skipped.</p>
+<p>For security purposes, if a segment meets any of the following conditions,
+an <code>Err</code> is returned indicating the condition met:</p>
+<ul>
+<li>Decoded segment starts with any of: <code>.</code> (except <code>..</code>), <code>*</code></li>
+<li>Decoded segment ends with any of: <code>:</code>, <code>&gt;</code>, <code>&lt;</code></li>
+<li>Decoded segment contains any of: <code>/</code></li>
+<li>On Windows, decoded segment contains any of: ''</li>
+<li>Percent-encoding results in invalid UTF8.</li>
+</ul>
+<p>As a result of these conditions, a <code>PathBuf</code> parsed from request path parameter is
+safe to interpolate within, or use as a suffix of, a path without additional checks.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use std::path::PathBuf;
+use actix_web::{App, HttpRequest, Result, http::Method};
+
+fn index(req: HttpRequest) -&gt; Result&lt;String&gt; {
+    let path: PathBuf = req.match_info().query(&quot;tail&quot;)?;
+    Ok(format!(&quot;Path {:?}&quot;, path))
+}
+
+fn main() {
+    App::new()
+        .resource(r&quot;/a/{tail:.*}&quot;, |r| r.method(Method::GET).f(index))
+        .finish();
+}
+</code></pre></pre>
+<p>List of <code>FromParam</code> implementations can be found in
+<a href="../actix_web/dev/trait.FromParam.html#foreign-impls">api docs</a></p>
+<a class="header" href="print.html#path-information-extractor" id="path-information-extractor"><h2>Path information extractor</h2></a>
+<p>Actix provides functionality for type safe path information extraction.
+<a href="../actix_web/struct.Path.html">Path</a> extracts information, destination type
+could be defined in several different forms. Simplest approach is to use
+<code>tuple</code> type. Each element in tuple must correpond to one element from
+path pattern. i.e. you can match path pattern <code>/{id}/{username}/</code> against
+<code>Pyth&lt;(u32, String)&gt;</code> type, but <code>Path&lt;(String, String, String)&gt;</code> type will
+always fail.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, Path, Result, http::Method};
+
+// extract path info using serde
+fn index(info: Path&lt;(String, u32)&gt;) -&gt; Result&lt;String&gt; {
+    Ok(format!(&quot;Welcome {}! id: {}&quot;, info.0, info.1))
+}
+
+fn main() {
+    let app = App::new()
+        .resource(&quot;/{username}/{id}/index.html&quot;,    // &lt;- define path parameters
+                  |r| r.method(Method::GET).with(index));
+}
+</code></pre></pre>
+<p>It also possible to extract path pattern information to a struct. In this case,
+this struct must implement *serde's *<code>Deserialize</code> trait.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate serde_derive;
+use actix_web::{App, Path, Result, http::Method};
+
+#[derive(Deserialize)]
+struct Info {
+    username: String,
+}
+
+// extract path info using serde
+fn index(info: Path&lt;Info&gt;) -&gt; Result&lt;String&gt; {
+    Ok(format!(&quot;Welcome {}!&quot;, info.username))
+}
+
+fn main() {
+    let app = App::new()
+        .resource(&quot;/{username}/index.html&quot;,    // &lt;- define path parameters
+                  |r| r.method(Method::GET).with(index));
+}
+</code></pre></pre>
+<p><a href="../actix_web/struct.Query.html">Query</a> provides similar functionality for
+request query parameters.</p>
+<a class="header" href="print.html#generating-resource-urls" id="generating-resource-urls"><h2>Generating resource URLs</h2></a>
+<p>Use the <a href="../actix_web/struct.HttpRequest.html#method.url_for">HttpRequest.url_for()</a>
+method to generate URLs based on resource patterns. For example, if you've configured a
+resource with the name &quot;foo&quot; and the pattern &quot;{a}/{b}/{c}&quot;, you might do this:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::{App, Result, HttpRequest, HttpResponse, http::Method, http::header};
+#
+fn index(req: HttpRequest) -&gt; Result&lt;HttpResponse&gt; {
+    let url = req.url_for(&quot;foo&quot;, &amp;[&quot;1&quot;, &quot;2&quot;, &quot;3&quot;])?; // &lt;- generate url for &quot;foo&quot; resource
+    Ok(HttpResponse::Found()
+       .header(header::LOCATION, url.as_str())
+       .finish())
+}
+
+fn main() {
+    let app = App::new()
+        .resource(&quot;/test/{a}/{b}/{c}&quot;, |r| {
+             r.name(&quot;foo&quot;);  // &lt;- set resource name, then it could be used in `url_for`
+             r.method(Method::GET).f(|_| HttpResponse::Ok());
+        })
+        .route(&quot;/test/&quot;, Method::GET, index)
+        .finish();
+}
+</code></pre></pre>
+<p>This would return something like the string <em>http://example.com/test/1/2/3</em> (at least if
+the current protocol and hostname implied http://example.com).
+<code>url_for()</code> method returns <a href="https://docs.rs/url/1.6.0/url/struct.Url.html"><em>Url object</em></a> so you
+can modify this url (add query parameters, anchor, etc).
+<code>url_for()</code> could be called only for <em>named</em> resources otherwise error get returned.</p>
+<a class="header" href="print.html#external-resources" id="external-resources"><h2>External resources</h2></a>
+<p>Resources that are valid URLs, can be registered as external resources. They are useful
+for URL generation purposes only and are never considered for matching at request time.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, Error};
+
+fn index(mut req: HttpRequest) -&gt; Result&lt;HttpResponse, Error&gt; {
+    let url = req.url_for(&quot;youtube&quot;, &amp;[&quot;oHg5SJYRHA0&quot;])?;
+    assert_eq!(url.as_str(), &quot;https://youtube.com/watch/oHg5SJYRHA0&quot;);
+    Ok(HttpResponse::Ok().into())
+}
+
+fn main() {
+    let app = App::new()
+        .resource(&quot;/index.html&quot;, |r| r.f(index))
+        .external_resource(&quot;youtube&quot;, &quot;https://youtube.com/watch/{video_id}&quot;)
+        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#path-normalization-and-redirecting-to-slash-appended-routes" id="path-normalization-and-redirecting-to-slash-appended-routes"><h2>Path normalization and redirecting to slash-appended routes</h2></a>
+<p>By normalizing it means:</p>
+<ul>
+<li>Add a trailing slash to the path.</li>
+<li>Double slashes are replaced by one.</li>
+</ul>
+<p>The handler returns as soon as it finds a path that resolves
+correctly. The order if all enable is 1) merge, 3) both merge and append
+and 3) append. If the path resolves with
+at least one of those conditions, it will redirect to the new path.</p>
+<p>If <em>append</em> is <em>true</em>, append slash when needed. If a resource is
+defined with trailing slash and the request doesn't have one, it will
+be appended automatically.</p>
+<p>If <em>merge</em> is <em>true</em>, merge multiple consecutive slashes in the path into one.</p>
+<p>This handler designed to be used as a handler for application's <em>default resource</em>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# #[macro_use] extern crate serde_derive;
+# use actix_web::*;
+use actix_web::http::NormalizePath;
+#
+# fn index(req: HttpRequest) -&gt; HttpResponse {
+#    HttpResponse::Ok().into()
+# }
+fn main() {
+    let app = App::new()
+        .resource(&quot;/resource/&quot;, |r| r.f(index))
+        .default_resource(|r| r.h(NormalizePath::default()))
+        .finish();
+}
+</code></pre></pre>
+<p>In this example <code>/resource</code>, <code>//resource///</code> will be redirected to <code>/resource/</code>.</p>
+<p>In this example, the path normalization handler is registered for all methods,
+but you should not rely on this mechanism to redirect <em>POST</em> requests. The redirect of the
+slash-appending <em>Not Found</em> will turn a <em>POST</em> request into a GET, losing any
+<em>POST</em> data in the original request.</p>
+<p>It is possible to register path normalization only for <em>GET</em> requests only:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# #[macro_use] extern crate serde_derive;
+use actix_web::{App, HttpRequest, http::Method, http::NormalizePath};
+#
+# fn index(req: HttpRequest) -&gt; &amp;'static str {
+#    &quot;test&quot;
+# }
+fn main() {
+    let app = App::new()
+        .resource(&quot;/resource/&quot;, |r| r.f(index))
+        .default_resource(|r| r.method(Method::GET).h(NormalizePath::default()))
+        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#using-an-application-prefix-to-compose-applications" id="using-an-application-prefix-to-compose-applications"><h2>Using an Application Prefix to Compose Applications</h2></a>
+<p>The <code>App::prefix()</code> method allows to set a specific application prefix.
+This prefix represents a resource prefix that will be prepended to all resource patterns added
+by the resource configuration. This can be used to help mount a set of routes at a different
+location than the included callable's author intended while still maintaining the same
+resource names.</p>
+<p>For example:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+#
+fn show_users(req: HttpRequest) -&gt; HttpResponse {
+   unimplemented!()
+}
+
+fn main() {
+    App::new()
+        .prefix(&quot;/users&quot;)
+        .resource(&quot;/show&quot;, |r| r.f(show_users))
+        .finish();
+}
+</code></pre></pre>
+<p>In the above example, the <em>show_users</em> route will have an effective route pattern of
+<em>/users/show</em> instead of <em>/show</em> because the application's prefix argument will be prepended
+to the pattern. The route will then only match if the URL path is <em>/users/show</em>,
+and when the <code>HttpRequest.url_for()</code> function is called with the route name show_users,
+it will generate a URL with that same path.</p>
+<a class="header" href="print.html#custom-route-predicates" id="custom-route-predicates"><h2>Custom route predicates</h2></a>
+<p>You can think of a predicate as a simple function that accepts a <em>request</em> object reference
+and returns <em>true</em> or <em>false</em>. Formally, a predicate is any object that implements the
+<a href="../actix_web/pred/trait.Predicate.html"><code>Predicate</code></a> trait. Actix provides
+several predicates, you can check <a href="../actix_web/pred/index.html#functions">functions section</a>
+of api docs.</p>
+<p>Here is a simple predicate that check that a request contains a specific <em>header</em>:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# use actix_web::*;
+use actix_web::{http, pred::Predicate, App, HttpRequest};
+
+struct ContentTypeHeader;
+
+impl&lt;S: 'static&gt; Predicate&lt;S&gt; for ContentTypeHeader {
+
+    fn check(&amp;self, req: &amp;mut HttpRequest&lt;S&gt;) -&gt; bool {
+       req.headers().contains_key(http::header::CONTENT_TYPE)
+    }
+}
+
+fn main() {
+    App::new()
+        .resource(&quot;/index.html&quot;, |r|
+           r.route()
+              .filter(ContentTypeHeader)
+              .f(|_| HttpResponse::Ok()));
+}
+</code></pre></pre>
+<p>In this example, <em>index</em> handler will be called only if request contains <em>CONTENT-TYPE</em> header.</p>
+<p>Predicates have access to the application's state via <code>HttpRequest::state()</code>.
+Also predicates can store extra information in
+<a href="../actix_web/struct.HttpRequest.html#method.extensions">request extensions</a>.</p>
+<a class="header" href="print.html#modifying-predicate-values" id="modifying-predicate-values"><h3>Modifying predicate values</h3></a>
+<p>You can invert the meaning of any predicate value by wrapping it in a <code>Not</code> predicate.
+For example, if you want to return &quot;METHOD NOT ALLOWED&quot; response for all methods
+except &quot;GET&quot;:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate http;
+# use actix_web::*;
+use actix_web::{pred, App, HttpResponse};
+
+fn main() {
+    App::new()
+        .resource(&quot;/index.html&quot;, |r|
+           r.route()
+              .filter(pred::Not(pred::Get()))
+              .f(|req| HttpResponse::MethodNotAllowed()))
+        .finish();
+}
+</code></pre></pre>
+<p>The <code>Any</code> predicate accepts a list of predicates and matches if any of the supplied
+predicates match. i.e:</p>
+<pre><code class="language-rust ignore">    pred::Any(pred::Get()).or(pred::Post())
+</code></pre>
+<p>The <code>All</code> predicate accepts a list of predicates and matches if all of the supplied
+predicates match. i.e:</p>
+<pre><code class="language-rust ignore">    pred::All(pred::Get()).and(pred::Header(&quot;content-type&quot;, &quot;plain/text&quot;))
+</code></pre>
+<a class="header" href="print.html#changing-the-default-not-found-response" id="changing-the-default-not-found-response"><h2>Changing the default Not Found response</h2></a>
+<p>If the path pattern can not be found in the routing table or a resource can not find matching
+route, the default resource is used. The default response is <em>NOT FOUND</em>.
+It is possible to override the <em>NOT FOUND</em> response with <code>App::default_resource()</code>.
+This method accepts a <em>configuration function</em> same as normal resource configuration
+with <code>App::resource()</code> method.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpResponse, http::Method, pred};
+
+fn main() {
+    App::new()
+        .default_resource(|r| {
+              r.method(Method::GET).f(|req| HttpResponse::NotFound());
+              r.route().filter(pred::Not(pred::Get()))
+                  .f(|req| HttpResponse::MethodNotAllowed());
+         })
+#        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#request--response" id="request--response"><h1>Request &amp; Response</h1></a>
+<a class="header" href="print.html#response" id="response"><h2>Response</h2></a>
+<p>A builder-like pattern is used to construct an instance of <code>HttpResponse</code>.
+<code>HttpResponse</code> provides several methods that return a <code>HttpResponseBuilder</code> instance,
+which implements various convenience methods for building responses.</p>
+<blockquote>
+<p>Check the <a href="../actix_web/dev/struct.HttpResponseBuilder.html">documentation</a>
+for type descriptions.</p>
+</blockquote>
+<p>The methods <code>.body</code>, <code>.finish</code>, and <code>.json</code> finalize response creation and
+return a constructed <em>HttpResponse</em> instance. If this methods is called on the same
+builder instance multiple times, the builder will panic.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{HttpRequest, HttpResponse, http::ContentEncoding};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .content_encoding(ContentEncoding::Br)
+        .content_type(&quot;plain/text&quot;)
+        .header(&quot;X-Hdr&quot;, &quot;sample&quot;)
+        .body(&quot;data&quot;)
+}
+# fn main() {}
+</code></pre></pre>
+<a class="header" href="print.html#content-encoding" id="content-encoding"><h2>Content encoding</h2></a>
+<p>Actix automatically <em>compresses</em>/<em>decompresses</em> payloads. The following codecs are supported:</p>
+<ul>
+<li>Brotli</li>
+<li>Gzip</li>
+<li>Deflate</li>
+<li>Identity</li>
+</ul>
+<p>If request headers contain a <code>Content-Encoding</code> header, the request payload is decompressed
+according to the header value. Multiple codecs are not supported,
+i.e: <code>Content-Encoding: br, gzip</code>.</p>
+<p>Response payload is compressed based on the <em>content_encoding</em> parameter.
+By default, <code>ContentEncoding::Auto</code> is used. If <code>ContentEncoding::Auto</code> is selected,
+then the compression depends on the request's <code>Accept-Encoding</code> header.</p>
+<blockquote>
+<p><code>ContentEncoding::Identity</code> can be used to disable compression.
+If another content encoding is selected, the compression is enforced for that codec.</p>
+</blockquote>
+<p>For example, to enable <code>brotli</code> use <code>ContentEncoding::Br</code>:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{HttpRequest, HttpResponse, http::ContentEncoding};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .content_encoding(ContentEncoding::Br)
+        .body(&quot;data&quot;)
+}
+# fn main() {}
+</code></pre></pre>
+<p>In this case we explicitly disable content compression
+by setting content encoding to a <code>Identity</code> value:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{HttpRequest, HttpResponse, http::ContentEncoding};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .content_encoding(ContentEncoding::Identity) // &lt;- disable compression
+        .body(&quot;data&quot;)
+}
+# fn main() {}
+</code></pre></pre>
+<p>Also it is possible to set default content encoding on application level, by
+default <code>ContentEncoding::Auto</code> is used, which implies automatic content compression
+negotiation.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{App, HttpRequest, HttpResponse, http::ContentEncoding};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .body(&quot;data&quot;)
+}
+fn main() {
+    let app = App::new()
+       .default_encoding(ContentEncoding::Identity) // &lt;- disable compression for all routes
+       .resource(&quot;/index.html&quot;, |r| r.with(index));
+}
+</code></pre></pre>
+<a class="header" href="print.html#json-request" id="json-request"><h2>JSON Request</h2></a>
+<p>There are several options for json body deserialization.</p>
+<p>The first option is to use <em>Json</em> extractor. First, you define a handler function
+that accepts <code>Json&lt;T&gt;</code> as a parameter, then, you use the <code>.with()</code> method for registering
+this handler. It is also possible to accept arbitrary valid json object by
+using <code>serde_json::Value</code> as a type <code>T</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate serde_derive;
+use actix_web::{App, Json, Result, http};
+
+#[derive(Deserialize)]
+struct Info {
+    username: String,
+}
+
+/// extract `Info` using serde
+fn index(info: Json&lt;Info&gt;) -&gt; Result&lt;String&gt; {
+    Ok(format!(&quot;Welcome {}!&quot;, info.username))
+}
+
+fn main() {
+    let app = App::new().resource(
+       &quot;/index.html&quot;,
+       |r| r.method(http::Method::POST).with(index));  // &lt;- use `with` extractor
+}
+</code></pre></pre>
+<p>Another option is to use <em>HttpResponse::json()</em>. This method returns a
+<a href="../actix_web/dev/struct.JsonBody.html"><em>JsonBody</em></a> object which resolves into
+the deserialized value.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+# extern crate futures;
+# extern crate serde_json;
+# #[macro_use] extern crate serde_derive;
+# use actix_web::*;
+# use futures::Future;
+#[derive(Debug, Serialize, Deserialize)]
+struct MyObj {
+    name: String,
+    number: i32,
+}
+
+fn index(mut req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    req.json().from_err()
+        .and_then(|val: MyObj| {
+            println!(&quot;model: {:?}&quot;, val);
+            Ok(HttpResponse::Ok().json(val))  // &lt;- send response
+        })
+        .responder()
+}
+# fn main() {}
+</code></pre></pre>
+<p>You may also manually load the payload into memory and then deserialize it.</p>
+<p>In the following example, we will deserialize a <em>MyObj</em> struct. We need to load the request
+body first and then deserialize the json into an object.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# use actix_web::*;
+# #[macro_use] extern crate serde_derive;
+extern crate serde_json;
+use futures::{Future, Stream};
+
+#[derive(Serialize, Deserialize)]
+struct MyObj {name: String, number: i32}
+
+fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+   // `concat2` will asynchronously read each chunk of the request body and
+   // return a single, concatenated, chunk
+   req.concat2()
+      // `Future::from_err` acts like `?` in that it coerces the error type from
+      // the future into the final error type
+      .from_err()
+      // `Future::and_then` can be used to merge an asynchronous workflow with a
+      // synchronous workflow
+      .and_then(|body| {                           // &lt;- body is loaded, now we can deserialize json
+          let obj = serde_json::from_slice::&lt;MyObj&gt;(&amp;body)?;
+          Ok(HttpResponse::Ok().json(obj))        // &lt;- send response
+      })
+      .responder()
+}
+# fn main() {}
+</code></pre></pre>
+<blockquote>
+<p>A complete example for both options is available in
+<a href="https://github.com/actix/actix-web/tree/master/examples/json/">examples directory</a>.</p>
+</blockquote>
+<a class="header" href="print.html#json-response" id="json-response"><h2>JSON Response</h2></a>
+<p>The <code>Json</code> type allows to respond with well-formed JSON data: simply return a value of
+type Json<T> where <code>T</code> is the type of a structure to serialize into <em>JSON</em>.
+The type <code>T</code> must implement the <code>Serialize</code> trait from <em>serde</em>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+#[macro_use] extern crate serde_derive;
+use actix_web::{App, HttpRequest, Json, Result, http::Method};
+
+#[derive(Serialize)]
+struct MyObj {
+    name: String,
+}
+
+fn index(req: HttpRequest) -&gt; Result&lt;Json&lt;MyObj&gt;&gt; {
+    Ok(Json(MyObj{name: req.match_info().query(&quot;name&quot;)?}))
+}
+
+fn main() {
+    App::new()
+        .resource(r&quot;/a/{name}&quot;, |r| r.method(Method::GET).f(index))
+        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#chunked-transfer-encoding" id="chunked-transfer-encoding"><h2>Chunked transfer encoding</h2></a>
+<p>Actix automatically decodes <em>chunked</em> encoding. <code>HttpRequest::payload()</code> already contains
+the decoded byte stream. If the request payload is compressed with one of the supported
+compression codecs (br, gzip, deflate), then the byte stream is decompressed.</p>
+<p>Chunked encoding on a response can be enabled with <code>HttpResponseBuilder::chunked()</code>.
+This takes effect only for <code>Body::Streaming(BodyStream)</code> or <code>Body::StreamingContext</code> bodies.
+If the response payload compression is enabled and a streaming body is used, chunked encoding
+is enabled automatically.</p>
+<blockquote>
+<p>Enabling chunked encoding for <em>HTTP/2.0</em> responses is forbidden.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust"># extern crate bytes;
+# extern crate actix_web;
+# extern crate futures;
+# use futures::Stream;
+use actix_web::*;
+use bytes::Bytes;
+use futures::stream::once;
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+    HttpResponse::Ok()
+        .chunked()
+        .body(Body::Streaming(Box::new(once(Ok(Bytes::from_static(b&quot;data&quot;))))))
+}
+# fn main() {}
+</code></pre></pre>
+<a class="header" href="print.html#multipart-body" id="multipart-body"><h2>Multipart body</h2></a>
+<p>Actix provides multipart stream support.
+<a href="../actix_web/multipart/struct.Multipart.html"><em>Multipart</em></a> is implemented as
+a stream of multipart items. Each item can be a
+<a href="../actix_web/multipart/struct.Field.html"><em>Field</em></a> or a nested <em>Multipart</em> stream.
+<code>HttpResponse::multipart()</code> returns the <em>Multipart</em> stream for the current request.</p>
+<p>The following demonstrates multipart stream handling for a simple form:</p>
+<pre><code class="language-rust ignore"># extern crate actix_web;
+use actix_web::*;
+
+fn index(req: HttpRequest) -&gt; Box&lt;Future&lt;...&gt;&gt; {
+    req.multipart()        // &lt;- get multipart stream for current request
+       .and_then(|item| {  // &lt;- iterate over multipart items
+           match item {
+                           // Handle multipart Field
+              multipart::MultipartItem::Field(field) =&gt; {
+                 println!(&quot;==== FIELD ==== {:?} {:?}&quot;, field.headers(), field.content_type());
+
+                 Either::A(
+                           // Field in turn is a stream of *Bytes* objects
+                   field.map(|chunk| {
+                        println!(&quot;-- CHUNK: \n{}&quot;,
+                                 std::str::from_utf8(&amp;chunk).unwrap());})
+                      .fold((), |_, _| result(Ok(()))))
+                },
+              multipart::MultipartItem::Nested(mp) =&gt; {
+                         // Or item could be nested Multipart stream
+                 Either::B(result(Ok(())))
+              }
+         }
+   })
+}
+</code></pre>
+<blockquote>
+<p>A full example is available in the
+<a href="https://github.com/actix/actix-web/tree/master/examples/multipart/">examples directory</a>.</p>
+</blockquote>
+<a class="header" href="print.html#urlencoded-body" id="urlencoded-body"><h2>Urlencoded body</h2></a>
+<p>Actix provides support for <em>application/x-www-form-urlencoded</em> encoded bodies.
+<code>HttpResponse::urlencoded()</code> returns a
+<a href="../actix_web/dev/struct.UrlEncoded.html"><em>UrlEncoded</em></a> future, which resolves
+to the deserialized instance. The type of the instance must implement the
+<code>Deserialize</code> trait from <em>serde</em>.</p>
+<p>The <em>UrlEncoded</em> future can resolve into an error in several cases:</p>
+<ul>
+<li>content type is not <code>application/x-www-form-urlencoded</code></li>
+<li>transfer encoding is <code>chunked</code>.</li>
+<li>content-length is greater than 256k</li>
+<li>payload terminates with error.</li>
+</ul>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+#[macro_use] extern crate serde_derive;
+use actix_web::*;
+use futures::future::{Future, ok};
+
+#[derive(Deserialize)]
+struct FormData {
+    username: String,
+}
+
+fn index(mut req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    req.urlencoded::&lt;FormData&gt;() // &lt;- get UrlEncoded future
+       .from_err()
+       .and_then(|data| {        // &lt;- deserialized instance
+             println!(&quot;USERNAME: {:?}&quot;, data.username);
+             ok(HttpResponse::Ok().into())
+       })
+       .responder()
+}
+# fn main() {}
+</code></pre></pre>
+<a class="header" href="print.html#streaming-request" id="streaming-request"><h2>Streaming request</h2></a>
+<p><em>HttpRequest</em> is a stream of <code>Bytes</code> objects. It can be used to read the request
+body payload.</p>
+<p>In the following example, we read and print the request payload chunk by chunk:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+# extern crate futures;
+# use futures::future::result;
+use actix_web::*;
+use futures::{Future, Stream};
+
+
+fn index(mut req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    req.from_err()
+       .fold((), |_, chunk| {
+            println!(&quot;Chunk: {:?}&quot;, chunk);
+            result::&lt;_, error::PayloadError&gt;(Ok(()))
+        })
+       .map(|_| HttpResponse::Ok().finish())
+       .responder()
+}
+# fn main() {}
+</code></pre></pre>
+<a class="header" href="print.html#testing" id="testing"><h1>Testing</h1></a>
+<p>Every application should be well tested. Actix provides tools to perform unit and
+integration tests.</p>
+<a class="header" href="print.html#unit-tests" id="unit-tests"><h2>Unit tests</h2></a>
+<p>For unit testing, actix provides a request builder type and a simple handler runner.
+<a href="../actix_web/test/struct.TestRequest.html"><em>TestRequest</em></a> implements a builder-like pattern.
+You can generate a <code>HttpRequest</code> instance with <code>finish()</code>, or you can
+run your handler with <code>run()</code> or <code>run_async()</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{http, test, HttpRequest, HttpResponse, HttpMessage};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+     if let Some(hdr) = req.headers().get(http::header::CONTENT_TYPE) {
+        if let Ok(s) = hdr.to_str() {
+            return HttpResponse::Ok().into()
+        }
+     }
+     HttpResponse::BadRequest().into()
+}
+
+fn main() {
+    let resp = test::TestRequest::with_header(&quot;content-type&quot;, &quot;text/plain&quot;)
+        .run(index)
+        .unwrap();
+    assert_eq!(resp.status(), http::StatusCode::OK);
+
+    let resp = test::TestRequest::default()
+        .run(index)
+        .unwrap();
+    assert_eq!(resp.status(), http::StatusCode::BAD_REQUEST);
+}
+</code></pre></pre>
+<a class="header" href="print.html#integration-tests" id="integration-tests"><h2>Integration tests</h2></a>
+<p>There are several methods for testing your application. Actix provides
+<a href="../actix_web/test/struct.TestServer.html"><em>TestServer</em></a>, which can be used
+to run the application with specific handlers in a real http server.</p>
+<p><code>TestServer::get()</code>, <code>TestServer::post()</code>, and <code>TestServer::client()</code>
+methods can be used to send requests to the test server.</p>
+<p>A simple form <code>TestServer</code> can be configured to use a handler.
+<code>TestServer::new</code> method accepts a configuration function, and the only argument
+for this function is a <em>test application</em> instance.</p>
+<blockquote>
+<p>Check the <a href="../actix_web/test/struct.TestApp.html">api documentation</a> for more information.</p>
+</blockquote>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{HttpRequest, HttpResponse, HttpMessage};
+use actix_web::test::TestServer;
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+     HttpResponse::Ok().into()
+}
+
+fn main() {
+    let mut srv = TestServer::new(|app| app.handler(index));  // &lt;- Start new test server
+
+    let request = srv.get().finish().unwrap();                // &lt;- create client request
+    let response = srv.execute(request.send()).unwrap();      // &lt;- send request to the server
+    assert!(response.status().is_success());                  // &lt;- check response
+
+    let bytes = srv.execute(response.body()).unwrap();        // &lt;- read response body
+}
+</code></pre></pre>
+<p>The other option is to use an application factory. In this case, you need to pass the factory
+function the same way as you would for real http server configuration.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{http, test, App, HttpRequest, HttpResponse};
+
+fn index(req: HttpRequest) -&gt; HttpResponse {
+     HttpResponse::Ok().into()
+}
+
+/// This function get called by http server.
+fn create_app() -&gt; App {
+    App::new()
+        .resource(&quot;/test&quot;, |r| r.h(index))
+}
+
+fn main() {
+    let mut srv = test::TestServer::with_factory(create_app); // &lt;- Start new test server
+
+    let request = srv.client(
+         http::Method::GET, &quot;/test&quot;).finish().unwrap();       // &lt;- create client request
+    let response = srv.execute(request.send()).unwrap();      // &lt;- send request to the server
+
+    assert!(response.status().is_success());                  // &lt;- check response
+}
+</code></pre></pre>
+<p>If you need more complex application configuration, use the <code>TestServer::build_with_state()</code>
+method. For example, you may need to initialize application state or start <code>SyncActor</code>'s for diesel
+interation. This method accepts a closure that constructs the application state,
+and it runs when the actix system is configured. Thus, you can initialize any additional actors.</p>
+<pre><code class="language-rust ignore">#[test]
+fn test() {
+    let srv = TestServer::build_with_state(|| { // &lt;- construct builder with config closure
+        // we can start diesel actors
+        let addr = SyncArbiter::start(3, || {
+            DbExecutor(SqliteConnection::establish(&quot;test.db&quot;).unwrap())
+        });
+        // then we can construct custom state, or it could be `()`
+        MyState{addr: addr}
+   })
+   .start(|app| {      // &lt;- register server handlers and start test server
+        app.resource(
+            &quot;/{username}/index.html&quot;, |r| r.with(
+                |p: Path&lt;PParam&gt;| format!(&quot;Welcome {}!&quot;, p.username)));
+    });
+    
+    // now we can run our test code
+);
+</code></pre>
+<a class="header" href="print.html#websocket-server-tests" id="websocket-server-tests"><h2>WebSocket server tests</h2></a>
+<p>It is possible to register a <em>handler</em> with <code>TestApp::handler()</code>, which
+initiates a web socket connection. <em>TestServer</em> provides the method <code>ws()</code>, which connects to
+the websocket server and returns ws reader and writer objects. <em>TestServer</em> also
+provides an <code>execute()</code> method, which runs future objects to completion and returns
+result of the future computation.</p>
+<p>The following example demonstrates how to test a websocket handler:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+# extern crate futures;
+# extern crate http;
+# extern crate bytes;
+
+use actix_web::*;
+use futures::Stream;
+# use actix::prelude::*;
+
+struct Ws;   // &lt;- WebSocket actor
+
+impl Actor for Ws {
+    type Context = ws::WebsocketContext&lt;Self&gt;;
+}
+
+impl StreamHandler&lt;ws::Message, ws::ProtocolError&gt; for Ws {
+
+    fn handle(&amp;mut self, msg: ws::Message, ctx: &amp;mut Self::Context) {
+        match msg {
+            ws::Message::Text(text) =&gt; ctx.text(text),
+            _ =&gt; (),
+        }
+    }
+}
+
+fn main() {
+    let mut srv = test::TestServer::new(             // &lt;- start our server with ws handler
+        |app| app.handler(|req| ws::start(req, Ws)));
+
+    let (reader, mut writer) = srv.ws().unwrap();    // &lt;- connect to ws server
+
+    writer.text(&quot;text&quot;);                             // &lt;- send message to server
+
+    let (item, reader) = srv.execute(reader.into_future()).unwrap();  // &lt;- wait for one message
+    assert_eq!(item, Some(ws::Message::Text(&quot;text&quot;.to_owned())));
+}
+</code></pre></pre>
+<a class="header" href="print.html#middleware" id="middleware"><h1>Middleware</h1></a>
+<p>Actix's middleware system allows us to add additional behavior to request/response processing.
+Middleware can hook into an incoming request process, enabling us to modify requests
+as well as halt request processing to return a response early.</p>
+<p>Middleware can also hook into response processing.</p>
+<p>Typically, middleware is involved in the following actions:</p>
+<ul>
+<li>Pre-process the Request</li>
+<li>Post-process a Response</li>
+<li>Modify application state</li>
+<li>Access external services (redis, logging, sessions)</li>
+</ul>
+<p>Middleware is registered for each application and executed in same order as
+registration. In general, a <em>middleware</em> is a type that implements the
+<a href="../actix_web/middlewares/trait.Middleware.html"><em>Middleware trait</em></a>. Each method
+in this trait has a default implementation. Each method can return a result immediately
+or a <em>future</em> object.</p>
+<p>The following demonstrates using middleware to add request and response headers:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate http;
+# extern crate actix_web;
+use http::{header, HttpTryFrom};
+use actix_web::{App, HttpRequest, HttpResponse, Result};
+use actix_web::middleware::{Middleware, Started, Response};
+
+struct Headers;  // &lt;- Our middleware
+
+/// Middleware implementation, middlewares are generic over application state,
+/// so you can access state with `HttpRequest::state()` method.
+impl&lt;S&gt; Middleware&lt;S&gt; for Headers {
+
+    /// Method is called when request is ready. It may return
+    /// future, which should resolve before next middleware get called.
+    fn start(&amp;self, req: &amp;mut HttpRequest&lt;S&gt;) -&gt; Result&lt;Started&gt; {
+        req.headers_mut().insert(
+            header::CONTENT_TYPE, header::HeaderValue::from_static(&quot;text/plain&quot;));
+        Ok(Started::Done)
+    }
+
+    /// Method is called when handler returns response,
+    /// but before sending http message to peer.
+    fn response(&amp;self, req: &amp;mut HttpRequest&lt;S&gt;, mut resp: HttpResponse) -&gt; Result&lt;Response&gt; {
+        resp.headers_mut().insert(
+            header::HeaderName::try_from(&quot;X-VERSION&quot;).unwrap(),
+            header::HeaderValue::from_static(&quot;0.2&quot;));
+        Ok(Response::Done(resp))
+    }
+}
+
+fn main() {
+    App::new()
+       .middleware(Headers)  // &lt;- Register middleware, this method can be called multiple times
+       .resource(&quot;/&quot;, |r| r.f(|_| HttpResponse::Ok()));
+}
+</code></pre></pre>
+<blockquote>
+<p>Actix provides several useful middlewares, such as <em>logging</em>, <em>user sessions</em>, etc.</p>
+</blockquote>
+<a class="header" href="print.html#logging" id="logging"><h2>Logging</h2></a>
+<p>Logging is implemented as a middleware.
+It is common to register a logging middleware as the first middleware for the application.
+Logging middleware must be registered for each application.</p>
+<p>The <code>Logger</code> middleware uses the standard log crate to log information. You should enable logger
+for <em>actix_web</em> package to see access log (<a href="https://docs.rs/env_logger/*/env_logger/">env_logger</a>
+or similar).</p>
+<a class="header" href="print.html#usage" id="usage"><h3>Usage</h3></a>
+<p>Create <code>Logger</code> middleware with the specified <code>format</code>.
+Default <code>Logger</code> can be created with <code>default</code> method, it uses the default format:</p>
+<pre><code class="language-ignore">  %a %t &quot;%r&quot; %s %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot; %T
+</code></pre>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+extern crate env_logger;
+use actix_web::App;
+use actix_web::middleware::Logger;
+
+fn main() {
+    std::env::set_var(&quot;RUST_LOG&quot;, &quot;actix_web=info&quot;);
+    env_logger::init();
+
+    App::new()
+       .middleware(Logger::default())
+       .middleware(Logger::new(&quot;%a %{User-Agent}i&quot;))
+       .finish();
+}
+</code></pre></pre>
+<p>The following is an example of the default logging format:</p>
+<pre><code>INFO:actix_web::middleware::logger: 127.0.0.1:59934 [02/Dec/2017:00:21:43 -0800] &quot;GET / HTTP/1.1&quot; 302 0 &quot;-&quot; &quot;curl/7.54.0&quot; 0.000397
+INFO:actix_web::middleware::logger: 127.0.0.1:59947 [02/Dec/2017:00:22:40 -0800] &quot;GET /index.html HTTP/1.1&quot; 200 0 &quot;-&quot; &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:57.0) Gecko/20100101 Firefox/57.0&quot; 0.000646
+</code></pre>
+<a class="header" href="print.html#format" id="format"><h3>Format</h3></a>
+<p><code>%%</code>  The percent sign</p>
+<p><code>%a</code>  Remote IP-address (IP-address of proxy if using reverse proxy)</p>
+<p><code>%t</code>  Time when the request was started to process</p>
+<p><code>%P</code>  The process ID of the child that serviced the request</p>
+<p><code>%r</code>  First line of request</p>
+<p><code>%s</code>  Response status code</p>
+<p><code>%b</code>  Size of response in bytes, including HTTP headers</p>
+<p><code>%T</code>  Time taken to serve the request, in seconds with floating fraction in .06f format</p>
+<p><code>%D</code>  Time taken to serve the request, in milliseconds</p>
+<p><code>%{FOO}i</code>  request.headers['FOO']</p>
+<p><code>%{FOO}o</code>  response.headers['FOO']</p>
+<p><code>%{FOO}e</code>  os.environ['FOO']</p>
+<a class="header" href="print.html#default-headers" id="default-headers"><h2>Default headers</h2></a>
+<p>To set default response headers, the <code>DefaultHeaders</code> middleware can be used. The
+<em>DefaultHeaders</em> middleware does not set the header if response headers already contain
+a specified header.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{http, middleware, App, HttpResponse};
+
+fn main() {
+    let app = App::new()
+        .middleware(
+            middleware::DefaultHeaders::new()
+                .header(&quot;X-Version&quot;, &quot;0.2&quot;))
+        .resource(&quot;/test&quot;, |r| {
+             r.method(http::Method::GET).f(|req| HttpResponse::Ok());
+             r.method(http::Method::HEAD).f(|req| HttpResponse::MethodNotAllowed());
+        })
+       .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#user-sessions" id="user-sessions"><h2>User sessions</h2></a>
+<p>Actix provides a general solution for session management. The
+<a href="../actix_web/middleware/struct.SessionStorage.html"><strong>SessionStorage</strong></a> middleware can be
+used with different backend types to store session data in different backends.</p>
+<blockquote>
+<p>By default, only cookie session backend is implemented. Other backend implementations
+can be added.</p>
+</blockquote>
+<p><a href="../actix_web/middleware/struct.CookieSessionBackend.html"><strong>CookieSessionBackend</strong></a>
+uses cookies as session storage. <code>CookieSessionBackend</code> creates sessions which
+are limited to storing fewer than 4000 bytes of data, as the payload must fit into a
+single cookie. An internal server error is generated if a session contains more than 4000 bytes.</p>
+<p>A cookie may have a security policy of <em>signed</em> or <em>private</em>. Each has a respective <code>CookieSessionBackend</code> constructor.</p>
+<p>A <em>signed</em> cookie may be viewed but not modified by the client. A <em>private</em> cookie may neither be viewed nor modified by the client.</p>
+<p>The constructors take a key as an argument. This is the private key for cookie session - when this value is changed, all session data is lost.</p>
+<p>In general, you create a
+<code>SessionStorage</code> middleware and initialize it with specific backend implementation,
+such as a <code>CookieSessionBackend</code>. To access session data,
+<a href="../actix_web/middleware/trait.RequestSession.html#tymethod.session"><em>HttpRequest::session()</em></a>
+must be used. This method returns a
+<a href="../actix_web/middleware/struct.Session.html"><em>Session</em></a> object, which allows us to get or set
+session data.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+use actix_web::{server, App, HttpRequest, Result};
+use actix_web::middleware::{RequestSession, SessionStorage, CookieSessionBackend};
+
+fn index(mut req: HttpRequest) -&gt; Result&lt;&amp;'static str&gt; {
+    // access session data
+    if let Some(count) = req.session().get::&lt;i32&gt;(&quot;counter&quot;)? {
+        println!(&quot;SESSION value: {}&quot;, count);
+        req.session().set(&quot;counter&quot;, count+1)?;
+    } else {
+        req.session().set(&quot;counter&quot;, 1)?;
+    }
+
+    Ok(&quot;Welcome!&quot;)
+}
+
+fn main() {
+#   let sys = actix::System::new(&quot;basic-example&quot;);
+    server::new(
+        || App::new()
+            .middleware(SessionStorage::new(          // &lt;- create session middleware
+                CookieSessionBackend::signed(&amp;[0; 32]) // &lt;- create signed cookie session backend
+                    .secure(false)
+            )))
+        .bind(&quot;127.0.0.1:59880&quot;).unwrap()
+        .start();
+#     actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));
+#     let _ = sys.run();
+}
+</code></pre></pre>
+<a class="header" href="print.html#error-handlers" id="error-handlers"><h2>Error handlers</h2></a>
+<p><code>ErrorHandlers</code> middleware allows us to provide custom handlers for responses.</p>
+<p>You can use the <code>ErrorHandlers::handler()</code> method to register a custom error handler
+for a specific status code. You can modify an existing response or create a completly new
+one. The error handler can return a response immediately or return a future that resolves
+into a response.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::{
+    App, HttpRequest, HttpResponse, Result,
+    http, middleware::Response, middleware::ErrorHandlers};
+
+fn render_500&lt;S&gt;(_: &amp;mut HttpRequest&lt;S&gt;, resp: HttpResponse) -&gt; Result&lt;Response&gt; {
+   let mut builder = resp.into_builder();
+   builder.header(http::header::CONTENT_TYPE, &quot;application/json&quot;);
+   Ok(Response::Done(builder.into()))
+}
+
+fn main() {
+    let app = App::new()
+        .middleware(
+            ErrorHandlers::new()
+                .handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
+        .resource(&quot;/test&quot;, |r| {
+             r.method(http::Method::GET).f(|_| HttpResponse::Ok());
+             r.method(http::Method::HEAD).f(|_| HttpResponse::MethodNotAllowed());
+        })
+        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#static-file-handling" id="static-file-handling"><h1>Static file handling</h1></a>
+<a class="header" href="print.html#individual-file" id="individual-file"><h2>Individual file</h2></a>
+<p>It is possible to serve static files with a custom path pattern and <code>NamedFile</code>. To
+match a path tail, we can use a <code>[.*]</code> regex.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use std::path::PathBuf;
+use actix_web::{App, HttpRequest, Result, http::Method, fs::NamedFile};
+
+fn index(req: HttpRequest) -&gt; Result&lt;NamedFile&gt; {
+    let path: PathBuf = req.match_info().query(&quot;tail&quot;)?;
+    Ok(NamedFile::open(path)?)
+}
+
+fn main() {
+    App::new()
+        .resource(r&quot;/a/{tail:.*}&quot;, |r| r.method(Method::GET).f(index))
+        .finish();
+}
+</code></pre></pre>
+<a class="header" href="print.html#directory" id="directory"><h2>Directory</h2></a>
+<p>To serve files from specific directories and sub-directories, <code>StaticFiles</code> can be used.
+<code>StaticFiles</code> must be registered with an <code>App::handler()</code> method, otherwise
+it will be unable to serve sub-paths.</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix_web;
+use actix_web::*;
+
+fn main() {
+    App::new()
+        .handler(
+            &quot;/static&quot;,
+            fs::StaticFiles::new(&quot;.&quot;)
+                .show_files_listing())
+        .finish();
+}
+</code></pre></pre>
+<p>The parameter is the base directory. By default files listing for sub-directories
+is disabled. Attempt to load directory listing will return <em>404 Not Found</em> response.
+To enable files listing, use
+<a href="../actix_web/s/struct.StaticFiles.html#method.show_files_listing"><em>StaticFiles::show_files_listing()</em></a>
+method.</p>
+<p>Instead of showing files listing for directory, it is possible to redirect
+to a specific index file. Use the
+<a href="../actix_web/s/struct.StaticFiles.html#method.index_file"><em>StaticFiles::index_file()</em></a>
+method to configure this redirect.</p>
+<a class="header" href="print.html#websockets" id="websockets"><h1>WebSockets</h1></a>
+<p>Actix supports WebSockets out-of-the-box. It is possible to convert a request's <code>Payload</code>
+to a stream of <a href="../actix_web/ws/enum.Message.html"><em>ws::Message</em></a> with
+a <a href="../actix_web/ws/struct.WsStream.html"><em>ws::WsStream</em></a> and then use stream
+combinators to handle actual messages, but it is simpler to handle websocket communications
+with an http actor.</p>
+<p>The following is an example of a simple websocket echo server:</p>
+<pre><pre class="playpen"><code class="language-rust"># extern crate actix;
+# extern crate actix_web;
+use actix::*;
+use actix_web::*;
+
+/// Define http actor
+struct Ws;
+
+impl Actor for Ws {
+    type Context = ws::WebsocketContext&lt;Self&gt;;
+}
+
+/// Handler for ws::Message message
+impl StreamHandler&lt;ws::Message, ws::ProtocolError&gt; for Ws {
+
+    fn handle(&amp;mut self, msg: ws::Message, ctx: &amp;mut Self::Context) {
+        match msg {
+            ws::Message::Ping(msg) =&gt; ctx.pong(&amp;msg),
+            ws::Message::Text(text) =&gt; ctx.text(text),
+            ws::Message::Binary(bin) =&gt; ctx.binary(bin),
+            _ =&gt; (),
+        }
+    }
+}
+
+fn main() {
+    App::new()
+      .resource(&quot;/ws/&quot;, |r| r.f(|req| ws::start(req, Ws)))  // &lt;- register websocket route
+      .finish();
+}
+</code></pre></pre>
+<blockquote>
+<p>A simple websocket echo server example is available in the
+<a href="https://github.com/actix/actix-web/blob/master/examples/websocket">examples directory</a>.</p>
+</blockquote>
+<blockquote>
+<p>An example chat server with the ability to chat over a websocket or tcp connection
+is available in <a href="https://github.com/actix/actix-web/tree/master/examples/websocket-chat/">websocket-chat directory</a></p>
+</blockquote>
+<a class="header" href="print.html#http20" id="http20"><h1>HTTP/2.0</h1></a>
+<p>Actix web automatically upgrades connections to <em>HTTP/2.0</em> if possible.</p>
+<a class="header" href="print.html#negotiation" id="negotiation"><h2>Negotiation</h2></a>
+<p><em>HTTP/2.0</em> protocol over tls without prior knowledge requires
+<a href="https://tools.ietf.org/html/rfc7301">tls alpn</a>.</p>
+<blockquote>
+<p>Currently, only <code>rust-openssl</code> has support.</p>
+</blockquote>
+<p><code>alpn</code> negotiation requires enabling the feature. When enabled, <code>HttpServer</code> provides the
+<a href="../actix_web/struct.HttpServer.html#method.serve_tls">serve_tls</a> method.</p>
+<pre><code class="language-toml">[dependencies]
+actix-web = { version = &quot;0.3.3&quot;, features=[&quot;alpn&quot;] }
+openssl = { version=&quot;0.10&quot;, features = [&quot;v110&quot;] }
+</code></pre>
+<pre><code class="language-rust ignore">use std::fs::File;
+use actix_web::*;
+use openssl::ssl::{SslMethod, SslAcceptor, SslFiletype};
+
+fn main() {
+    // load ssl keys
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    builder.set_private_key_file(&quot;key.pem&quot;, SslFiletype::PEM).unwrap();
+    builder.set_certificate_chain_file(&quot;cert.pem&quot;).unwrap();
+
+    HttpServer::new(
+        || App::new()
+            .resource(&quot;/index.html&quot;, |r| r.f(index)))
+        .bind(&quot;127.0.0.1:8080&quot;).unwrap();
+        .serve_ssl(builder).unwrap();
+}
+</code></pre>
+<p>Upgrades to <em>HTTP/2.0</em> schema described in
+<a href="https://http2.github.io/http2-spec/#rfc.section.3.2">rfc section 3.2</a> is not supported.
+Starting <em>HTTP/2</em> with prior knowledge is supported for both clear text connection
+and tls connection. <a href="https://http2.github.io/http2-spec/#rfc.section.3.4">rfc section 3.4</a></p>
+<blockquote>
+<p>Check out <a href="https://github.com/actix/actix-web/tree/master/examples/tls">examples/tls</a>
+for a concrete example.</p>
+</blockquote>
+<a class="header" href="print.html#database-integration" id="database-integration"><h1>Database integration</h1></a>
+<a class="header" href="print.html#diesel" id="diesel"><h2>Diesel</h2></a>
+<p>At the moment, Diesel 1.0 does not support asynchronous operations,
+but it possible to use the <code>actix</code> synchronous actor system as a database interface api.</p>
+<p>Technically, sync actors are worker style actors. Multiple sync actors
+can be run in parallel and process messages from same queue. Sync actors work in mpsc mode.</p>
+<p>Let's create a simple database api that can insert a new user row into a SQLite table.
+We must define a sync actor and a connection that this actor will use. The same approach
+can be used for other databases.</p>
+<pre><code class="language-rust ignore">use actix::prelude::*;
+
+struct DbExecutor(SqliteConnection);
+
+impl Actor for DbExecutor {
+    type Context = SyncContext&lt;Self&gt;;
+}
+</code></pre>
+<p>This is the definition of our actor. Now, we must define the <em>create user</em> message and response.</p>
+<pre><code class="language-rust ignore">struct CreateUser {
+    name: String,
+}
+
+impl Message for CreateUser {
+    type Result = Result&lt;User, Error&gt;;
+}
+</code></pre>
+<p>We can send a <code>CreateUser</code> message to the <code>DbExecutor</code> actor, and as a result, we will receive a
+<code>User</code> model instance. Next, we must define the handler implementation for this message.</p>
+<pre><code class="language-rust ignore">impl Handler&lt;CreateUser&gt; for DbExecutor {
+    type Result = Result&lt;User, Error&gt;;
+
+    fn handle(&amp;mut self, msg: CreateUser, _: &amp;mut Self::Context) -&gt; Self::Result
+    {
+        use self::schema::users::dsl::*;
+
+        // Create insertion model
+        let uuid = format!(&quot;{}&quot;, uuid::Uuid::new_v4());
+        let new_user = models::NewUser {
+            id: &amp;uuid,
+            name: &amp;msg.name,
+        };
+
+        // normal diesel operations
+        diesel::insert_into(users)
+            .values(&amp;new_user)
+            .execute(&amp;self.0)
+            .expect(&quot;Error inserting person&quot;);
+
+        let mut items = users
+            .filter(id.eq(&amp;uuid))
+            .load::&lt;models::User&gt;(&amp;self.0)
+            .expect(&quot;Error loading person&quot;);
+
+        Ok(items.pop().unwrap())
+    }
+}
+</code></pre>
+<p>That's it! Now, we can use the <em>DbExecutor</em> actor from any http handler or middleware.
+All we need is to start <em>DbExecutor</em> actors and store the address in a state where http handler
+can access it.</p>
+<pre><code class="language-rust ignore">/// This is state where we will store *DbExecutor* address.
+struct State {
+    db: Addr&lt;Syn, DbExecutor&gt;,
+}
+
+fn main() {
+    let sys = actix::System::new(&quot;diesel-example&quot;);
+
+    // Start 3 parallel db executors
+    let addr = SyncArbiter::start(3, || {
+        DbExecutor(SqliteConnection::establish(&quot;test.db&quot;).unwrap())
+    });
+
+    // Start http server
+    HttpServer::new(move || {
+        App::with_state(State{db: addr.clone()})
+            .resource(&quot;/{name}&quot;, |r| r.method(Method::GET).a(index))})
+        .bind(&quot;127.0.0.1:8080&quot;).unwrap()
+        .start().unwrap();
+
+    println!(&quot;Started http server: 127.0.0.1:8080&quot;);
+    let _ = sys.run();
+}
+</code></pre>
+<p>We will use the address in a request handler. The handle returns a future object;
+thus, we receive the message response asynchronously.
+<code>Route::a()</code> must be used for async handler registration.</p>
+<pre><code class="language-rust ignore">/// Async handler
+fn index(req: HttpRequest&lt;State&gt;) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {
+    let name = &amp;req.match_info()[&quot;name&quot;];
+
+    // Send message to `DbExecutor` actor
+    req.state().db.send(CreateUser{name: name.to_owned()})
+        .from_err()
+        .and_then(|res| {
+            match res {
+                Ok(user) =&gt; Ok(HttpResponse::Ok().json(user)),
+                Err(_) =&gt; Ok(HttpResponse::InternalServerError().into())
+            }
+        })
+        .responder()
+}
+</code></pre>
+<blockquote>
+<p>A full example is available in the
+<a href="https://github.com/actix/actix-web/tree/master/examples/diesel/">examples directory</a>.</p>
+</blockquote>
+<blockquote>
+<p>More information on sync actors can be found in the
+<a href="https://docs.rs/actix/0.5.0/actix/sync/index.html">actix documentation</a>.</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if (getComputedStyle(document.querySelector(".fa")).fontFamily !== "FontAwesome") {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.type = 'text/css';
+                link.href = '_FontAwesome/css/font-awesome.css';
+                document.head.insertBefore(link, document.head.firstChild)
+            }
+        </script>
+
+        
+
+        
+        <!-- Google Analytics Tag -->
+        <script>
+            var localAddrs = ["localhost", "127.0.0.1", ""];
+
+            // make sure we don't activate google analytics if the developer is
+            // inspecting the book locally...
+            if (localAddrs.indexOf(document.location.hostname) === -1) {
+                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                ga('create', 'UA-110322332-1', 'auto');
+                ga('send', 'pageview');
+            }
+        </script>
+        
+
+        
+
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.print();
+            })
+        </script>
+        
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS script -->
+        
+
+    </body>
+</html>
